@@ -2,23 +2,32 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main_layout"
+    android:id="@+id/trending_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/bg"
-    android:gravity="center"
     android:orientation="vertical"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="ai.portfolio.dev.project.app.com.padoi.Activities.MainActivity"
     tools:showIn="@layout/app_bar_main">
 
 
-    <ProgressBar
-        android:id="@+id/progress_bar_main"
-        style="?android:attr/progressBarStyle"
+    <TextView
+        android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:indeterminate="true"
-        tools:visibility="visible" />
+        android:background="@color/white"
+        android:fontFamily="@font/beatmyguest"
+        android:text="Trending"
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        android:textSize="36sp" />
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycle_view_BANDS"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
+
 </LinearLayout>

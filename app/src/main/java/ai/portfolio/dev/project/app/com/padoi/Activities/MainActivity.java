@@ -9,45 +9,72 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.login.LoginManager;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import ai.portfolio.dev.project.app.com.padoi.AsyncTasks.DownLoadImageTask;
-import ai.portfolio.dev.project.app.com.padoi.AsyncTasks.LiveBandTask;
+import ai.portfolio.dev.project.app.com.padoi.Fragments.MapViewFragment;
+import ai.portfolio.dev.project.app.com.padoi.Fragments.TrendingFragment;
+import ai.portfolio.dev.project.app.com.padoi.Interfaces.IFirebase;
 import ai.portfolio.dev.project.app.com.padoi.Models.BandUser;
+import ai.portfolio.dev.project.app.com.padoi.Models.FBUser;
+import ai.portfolio.dev.project.app.com.padoi.Models.PADOIUser;
 import ai.portfolio.dev.project.app.com.padoi.R;
+import ai.portfolio.dev.project.app.com.padoi.Utils.PADOI;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, LocationListener {
+        implements NavigationView.OnNavigationItemSelectedListener, LocationListener, IFirebase {
     // The minimum distance to change Updates in meters
     private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 5000; // 10 meters
     // The minimum time between updates in milliseconds
     private static final long MIN_TIME_BW_UPDATES = 5; // 1 minute
+    private static final String TAG = "FIREBASE TAG";
+    private static final int TAG_CODE_PERMISSION_LOCATION =100 ;
     private LocationManager mLocationManager;
     private Location userLocation;
+
     private List<BandUser> band_users;
+    private PADOIUser currentUser;
+    private FBUser fbUser;
+    private ProgressBar pb;
+    private FusedLocationProviderClient mFusedLocationClient;
 
     /**
      * Our Broadcast Receiver. We get notified that the data is ready this way.
      */
-   // private BroadcastReceiver receiver;
+    // private BroadcastReceiver receiver;
+
     /**
      * Defines callbacks for service binding, passed to bindService()
      */
@@ -62,22 +89,13 @@ public class MainActivity extends AppCompatActivity
             name = login_bundle.getString("name").toString();
             image_url = login_bundle.getString("image_url");
             id = login_bundle.getString("id");
+            fbUser = new FBUser(name, image_url, id);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-       /* FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });*/
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -91,43 +109,12 @@ public class MainActivity extends AppCompatActivity
         getUserPic(iv, image_url);
         TextView name_tv = (TextView) headerView.findViewById(R.id.user_name_tv);
         name_tv.setText(name);
-/**
- * CUSTOM APP LOGIC. REST calls: search for live bands, start service (gps), gui drawer activity.
- * Need to register a BroadcastReciever with an IntentFilter
- */
-        /*this.receiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-
-                String response = intent.getStringExtra(PADOI.HTTP_RESPONSE_LIVE_BANDS);
-                if (response != null) {//need to parse the JSON OBJECT
-                    //parse the array of users from Firebase db
-
-                    new Notify(context).createNotification().fromUser(new FBUser()).message("HI").sendNotification();
-                   // Log.d("IN On_RECIEVE:", "RESPONSE = " + response);
-                   // band_users = PADOI.toList(response, BandUser.class);
-                   Toast.makeText(context,"USER: "+band_users.get(0).getName()+" .... OBJ: "+band_users.get(0),Toast.LENGTH_LONG).show();
-                    //Log.d("JSON DESERIALIZE:",band_users.toString());
-                    //Toast.makeText(context, "onRec: " + band_users, Toast.LENGTH_LONG).show();
-                    //Toast.makeText(context,"SIZE: "+band_adapter.getSize()+" < > "+band_users.size(),Toast.LENGTH_LONG).show();
-                } else {
-                    Log.d("DEBUG_RES", "NULL RESPONSE");
-                }
-            }
-        };*/
-        //IntentFilter filter = new IntentFilter(PADOI.HTTP_RESPONSE_LIVE_BANDS);
-        //this.registerReceiver(receiver, filter);
         customGUISettings(headerView, this.findViewById(android.R.id.content).getRootView());
+        ///////////////////////////
         requestUserLocation();
 
     }
 
-    /**
-     * REST API. Firebase. Search by user location. Update the list view for TRENDING
-     */
-    private void searchLiveBands(RecyclerView rv) {
-        new LiveBandTask(this,rv).execute();
-    }
 
     /**
      * Start a service to get gps. Check permission.
@@ -137,6 +124,21 @@ public class MainActivity extends AppCompatActivity
             mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
             mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_BW_UPDATES,
                     MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
+            ///////////////////////////////////////////////////////
+            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+            mFusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
+                        @Override
+                        public void onSuccess(Location location) {
+                            // Got last known location. In some rare situations this can be null.
+                            if (location != null) {
+                                userLocation = location;
+                                Toast.makeText(MainActivity.this,"LOCATION: "+location.toString(),Toast.LENGTH_LONG).show();// Logic to handle location object
+                            }
+                            Log.d("DEBUGGGGG","HERERRRRRRRRRR");
+                        }
+                    });
+            ///////////////////////////////////////////////////////
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 // TODO: Consider calling
                 //    ActivityCompat#requestPermissions
@@ -150,10 +152,20 @@ public class MainActivity extends AppCompatActivity
                         new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
 
                 return;
+            }else{
+                ActivityCompat.requestPermissions(this, new String[] {
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION },
+                        TAG_CODE_PERMISSION_LOCATION);
             }
         } catch (SecurityException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
     /**
@@ -161,31 +173,10 @@ public class MainActivity extends AppCompatActivity
      * @param rootView   - from root view
      */
     private void customGUISettings(View headerView, View rootView) {
-        if(band_users==null)this.band_users=new ArrayList<>();
-        RecyclerView rv = (RecyclerView)rootView.findViewById(R.id.recycle_view_BANDS);
-        searchLiveBands(rv);
-        ///////////////////////////////HORIZONTAL VIEW USING RECYCLE VIEW
-        //Customize SNACK BAR
-       /* Snackbar snackbar = Snackbar.make(rootView.findViewById(R.id.main_layout),"", Snackbar.LENGTH_INDEFINITE);
-        Snackbar.SnackbarLayout layout = (Snackbar.SnackbarLayout) snackbar.getView();
-// Hide the text*/
-       // TextView textView = (TextView) layout.findViewById(android.support.design.R.id.snackbar_text);
-       // textView.setVisibility(View.INVISIBLE);
+        if (band_users == null) this.band_users = new ArrayList<>();
+        displayFragmentScreen(R.id.live_menu_item);
+        pb = (ProgressBar) rootView.findViewById(R.id.progress_bar_main);
 
-// Inflate our custom view
-     //   View snackView = this.getLayoutInflater().inflate(R.layout.test, null);
-     //   TextView tv = (TextView)snackView.findViewById(R.id.nameTEST_TV);
-     //   final LinearLayout info = (LinearLayout)snackView.findViewById(R.id.info_layout);
-     //   tv.setOnClickListener(new View.OnClickListener() {
-     //       @Override
-     //       public void onClick(View v) {
-      //          info.setVisibility(info.getVisibility()==View.GONE?View.VISIBLE:View.GONE);
-      //      }
-      //  });
-// Add the view to the Snackbar's layout
-       // layout.addView(snackView, 0);
-// Show the Snackbar
-       // snackbar.show();
     }
 
     /**
@@ -194,7 +185,7 @@ public class MainActivity extends AppCompatActivity
      * @param iv
      */
     private void getUserPic(ImageView iv, String url) {
-        new DownLoadImageTask(this.getApplicationContext(),iv).execute(url);
+        new DownLoadImageTask(this.getApplicationContext(), iv).execute(url);
     }
 
     @Override
@@ -220,7 +211,6 @@ public class MainActivity extends AppCompatActivity
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
@@ -229,31 +219,42 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
-    @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        } else if (id == R.id.fb_log_out_id) {
+        if (id == R.id.fb_log_out_id) {
             logOut();
+        } else {
+            displayFragmentScreen(id);
+        }
+        return true;
+    }
 
+    /**
+     * Switch on id from the menu option method
+     *
+     * @param id
+     * @return
+     */
+    public void displayFragmentScreen(int id) {
+        Fragment frag = null;
+        switch (id) {
+            case R.id.mapView_menu_item:
+                frag = new MapViewFragment();
+                break;
+            case R.id.live_menu_item:
+                if (currentUser == null && userLocation==null)return;//wait until location is updated then the program will run
+                frag = new TrendingFragment().setUser(currentUser);
+                break;
+        }
+        if (frag != null) {
+            FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+            ft.replace(R.id.main_layout, frag);
+            ft.commit();
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
-        return true;
     }
 
     private void logOut() {
@@ -312,6 +313,7 @@ public class MainActivity extends AppCompatActivity
     public void onProviderEnabled(String provider) {
 
     }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -321,7 +323,94 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-       band_users = savedInstanceState.getParcelableArrayList(BandUser.class.toString());
+        band_users = savedInstanceState.getParcelableArrayList(BandUser.class.toString());
     }
 
+    /**
+     * Fetch PADOIUser from firebase database
+     *
+     * @param fb_ID
+     */
+    @Override
+    public void fetchFirebaseUser(String fb_ID) {
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = db.getReference(PADOI.DBPATH_USERS);
+        // Read from the database
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (!dataSnapshot.exists()) {
+                    createNewUser(MainActivity.this.fbUser);
+                } else {
+                    // This method is called once with the initial value and again
+                    // whenever data at this location is updated.
+                    currentUser = dataSnapshot.getValue(PADOIUser.class);
+                    goToTrendingActivity(currentUser);
+                    Log.d(TAG, "Value is: " + currentUser);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // Failed to read value
+                Log.w(TAG, "Failed to read value.", error.toException());
+            }
+        });
+    }
+
+    private void goToTrendingActivity(PADOIUser currentUser) {
+        pb.setVisibility(View.GONE);
+        displayFragmentScreen(R.id.live_menu_item);
+    }
+
+    /**
+     * Fetch all band users from pagination
+     *
+     * @param band_users list of bands for the program
+     * @param pagination when needed to load more bands
+     */
+    @Override
+    public void fetchFirebaseBandUsers(List<BandUser> band_users, int pagination) {
+
+    }
+
+    /**
+     * @param from
+     * @param radius
+     */
+    @Override
+    public void fetchLiveBands(ai.portfolio.dev.project.app.com.padoi.Models.Location from, int radius) {
+
+    }
+
+    /**
+     *
+     */
+    @Override
+    public void fetchAllLiveBands() {
+
+    }
+
+    /**
+     * ADDS current user to the PADOI database.
+     *
+     * @param fb_user
+     */
+    @Override
+    public void createNewUser(FBUser fb_user) {
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+        DatabaseReference ref = db.getReference(PADOI.DBPATH_USERS + "/" + fb_user.getId());
+        ref.setValue(currentUser).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                        if(task.isSuccessful()){
+                            Toast.makeText(MainActivity.this.getApplicationContext(),"SUCCS LOG IN",Toast.LENGTH_LONG).show();
+                           goToTrendingActivity(currentUser);
+                        }else{
+                            Log.e("ERR",task.toString());
+                            Toast.makeText(MainActivity.this.getApplicationContext(),"FAILED LOG IN",Toast.LENGTH_LONG).show();
+                        }
+            }
+        });
+    }
 }

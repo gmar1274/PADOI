@@ -93,6 +93,7 @@ public class BandUser implements Parcelable{
         return "BandUser:{id:"+id+", name:"+ name +", image_url:"+this.image_url +", "+location+"}";
     }
 
+
     @Override
     public int describeContents() {
         return 0;

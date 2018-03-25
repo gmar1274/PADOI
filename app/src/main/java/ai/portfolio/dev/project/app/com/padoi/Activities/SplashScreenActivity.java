@@ -1,15 +1,23 @@
 package ai.portfolio.dev.project.app.com.padoi.Activities;
 
+import android.animation.Animator;
+import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.view.animation.Animation;
-import android.view.animation.LinearInterpolator;
-import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.Profile;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FacebookAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 import ai.portfolio.dev.project.app.com.padoi.Interfaces.ISplashScreen;
 import ai.portfolio.dev.project.app.com.padoi.R;
@@ -21,35 +29,76 @@ import ai.portfolio.dev.project.app.com.padoi.Utils.PADOI;
  */
 public class SplashScreenActivity extends AppCompatActivity implements ISplashScreen {
 
+    private FirebaseAuth mAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
-        RotateAnimation rotate = new RotateAnimation(0, 180, Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF, 0.5f);
-        rotate.setDuration(3000);
-        rotate.setInterpolator(new LinearInterpolator());
-        final ImageView im = (ImageView)findViewById(R.id.splash_imageView);
-        im.setAnimation(rotate);
 
+        ImageView iv = (ImageView)findViewById(R.id.splash_iv);
+        ObjectAnimator  an = ObjectAnimator.ofFloat(iv,
+                "rotation", 0f, 360f);
+        an.setDuration(2000); // miliseconds
+        an.start();
 
-
-
-
-
+        mAuth = FirebaseAuth.getInstance();
+/***
+ * Get login manager, check if already logged in. If it is Login in via Firebase AUTH
+ and continue to main activity. Otherwise go to LoginAcctivity for first time user */
         AccessToken token = AccessToken.getCurrentAccessToken();
-        Profile prof = Profile.getCurrentProfile();
+        final Profile prof = Profile.getCurrentProfile();
         if(token!=null && prof!=null ){
-         continueToApp(prof);
+            AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
+            mAuth.signInWithCredential(credential)
+                    .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<AuthResult> task) {
+                            if (task.isSuccessful()) {
+                                // Sign in success, update UI with the signed-in user's information
+                               // Log.d("Firebase sign in", "signInWithCredential:success");
+                                FirebaseUser user = mAuth.getCurrentUser();
+                                continueToApp(prof);
+                                //updateUI(user);
+                            } else {
+                                // If sign in fails, display a message to the user.
+                                //Log.w("firebase sign in", "signInWithCredential:failure", task.getException());
+                                Toast.makeText(SplashScreenActivity.this, "Authentication failed. Restart app.",Toast.LENGTH_LONG).show();
+                                // updateUI(null);
+                            }
+
+                            // ...
+                        }
+                    });
         }else{
-            login();
+            an.addListener(new Animator.AnimatorListener() {
+                @Override
+                public void onAnimationStart(Animator animation) {
+
+                }
+
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    login();
+                }
+
+                @Override
+                public void onAnimationCancel(Animator animation) {
+
+                }
+
+                @Override
+                public void onAnimationRepeat(Animator animation) {
+
+                }
+            });
+
         }
-        finish();
     }
 
     @Override
     public void continueToApp(Profile prof) {
             if(prof!=null) {
-
                 Intent intent = new Intent(this, MainActivity.class);
                 intent.putExtra("name", prof.getName());
                 intent.putExtra("image_url", prof.getProfilePictureUri(PADOI.WIDTH, PADOI.HEIGHT).toString());

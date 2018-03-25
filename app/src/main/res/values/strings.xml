@@ -16,4 +16,11 @@
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
 
+    <string name="google_maps_api_key">AIzaSyDTKIJzYZAv-MSHYZB6tTurBW1_AHVaLIs</string>
+    <string name="upgrade">Go VIP</string>
+    <string name="search">Discover Artists</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
 </resources>

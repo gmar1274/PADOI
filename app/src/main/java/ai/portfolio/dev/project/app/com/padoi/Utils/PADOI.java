@@ -4,13 +4,19 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
+import android.widget.ImageButton;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+
+import ai.portfolio.dev.project.app.com.padoi.R;
 
 /**
  * Created by gabe on 3/14/2018.
@@ -20,6 +26,7 @@ public class PADOI {
     public static final int WIDTH=300,HEIGHT=300;//url image fb
     public static final String HTTP_RESPONSE_LIVE_BANDS="LiveBandAPI";
     public static final String FOLDER_USERS_IMAGES = "USER_IMAGES";
+    public static final String DBPATH_USERS = "users";
 
     /**
      * DEPRACTED DO NOT USE...https://stackoverflow.com/questions/29188127/android-attempted-to-serialize-forgot-to-register-a-type-adapter
@@ -59,6 +66,7 @@ public class PADOI {
            File path1 = cw.getDir(folder, Context.MODE_PRIVATE);
            File f = new File(path1, imageName);
            Bitmap b = BitmapFactory.decodeStream(new FileInputStream(f));
+           Log.d("LOAD IMAGE","Loading success! PATH: "+f.getAbsolutePath());
            return b;
        } catch (FileNotFoundException e) {
            e.printStackTrace();
@@ -89,7 +97,7 @@ public class PADOI {
             //Editor editor = sharedpreferences.edit();
             //editor.putString("saved", "na");
             //editor.commit();
-            Log.d("IMAGE::: ","IMAGE SUCCESS SAVED!!");
+            Log.d("IMAGE::: ","IMAGE SUCCESS SAVED!! PATH: "+mypath.getAbsolutePath());
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -111,4 +119,30 @@ public class PADOI {
         return type;
     }
 
+    /**
+     * Dynamically switch image depending on like or not
+     * @param con
+     * @param beAFanBtn
+     * @param isFollowing
+     */
+    public static void userIsFollowingBand(Context con,ImageButton beAFanBtn, boolean isFollowing) {
+        // load image
+        try {
+
+            InputStream ims = null;
+            Drawable d = null;
+            if(isFollowing){
+               ims =  con.getAssets().open("isLiked.png");
+                d =Drawable.createFromStream(ims,null);
+                ims.close();
+            }else{
+               d = con.getResources().getDrawable(R.drawable.ic_action_like);
+            }
+            // set image to ImageView
+            beAFanBtn.setImageDrawable(d);
+        }
+        catch(IOException ex) {
+            return;
+        }
+    }
 }

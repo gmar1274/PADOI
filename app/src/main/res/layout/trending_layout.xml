@@ -1,77 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg"
+    android:layout_margin="8dp"
+    android:background="@drawable/shape">
 
-    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/trendingImageView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center"
+        android:adjustViewBounds="true"
+        android:background="@color/black"
+        android:scaleType="center"
+        android:src="@drawable/com_facebook_profile_picture_blank_portrait"
+        />
 
     <TextView
-        android:id="@+id/bandUser_TextView"
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|right"
+        android:layout_margin="8dp"
+        android:background="@color/red"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:text="Live"
+        android:textColor="@color/white"
+        android:textSize="18sp" />
+
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="top|left|center_vertical"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:background="#6f3241a0"
-        android:fontFamily="@font/beatmyguest"
-        android:gravity="top|center"
-        android:padding="5dp"
-        android:paddingEnd="5dp"
-        android:paddingLeft="5dp"
-        android:paddingTop="5dp"
-        android:text="Band Name"
-        android:textAlignment="viewStart"
-        android:textColor="@color/black"
-        android:textSize="36sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:id="@+id/imageView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            app:srcCompat="@drawable/launch_screen" />
+        android:layout_gravity="bottom|center"
+        android:layout_margin="0dp">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"></LinearLayout>
-    </LinearLayout>
-
-    <android.support.v7.widget.CardView
-        android:id="@+id/constraintLayout"
-        android:layout_width="368dp"
-        android:layout_height="148dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:background="@color/white"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <TextView
-            android:id="@+id/location_tv"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:text="Bio"
-            android:textSize="18sp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-    </android.support.v7.widget.CardView>
-</LinearLayout>
+            android:layout_gravity="bottom"
+            android:layout_margin="25dp"
+            android:background="@drawable/shape_white"
+            android:gravity="bottom"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/band_name_pic_overlay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|left"
+                android:background="@color/white"
+                android:fontFamily="@font/beatmyguest"
+                android:text="Band Name"
+                android:textAlignment="textStart"
+                android:textColor="@color/black"
+                android:textSize="36sp" />
+
+            <include
+                android:id="@+id/popup_info_id"
+                layout="@layout/band_user_popup_info_layout"
+                layout_width="match_parent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

@@ -7,9 +7,8 @@ package ai.portfolio.dev.project.app.com.padoi.Models;
  */
 
 public class FBUser {
-
     private String id,image_url,full_name;
-   public FBUser(){
+    public FBUser(){
 
    }
    public FBUser(String id,String image_url, String full_name){

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#1e2b76</color>
-    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorPrimaryDark">#001073</color>
     <color name="colorAccent">#ffe600</color>
     <color name="trending">#f20000</color>
     <color name="bg">#f4f4f4</color>
@@ -9,4 +9,6 @@
     <color name="black">#000000</color>
 
     <color name="black_overlay">#66000000</color>
+    <color name="red">#ff0000</color>
+    <color name="pic_overlay">#d7d7d7</color>
 </resources>
