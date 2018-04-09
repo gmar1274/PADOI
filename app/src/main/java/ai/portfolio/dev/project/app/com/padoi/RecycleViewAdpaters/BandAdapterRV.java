@@ -12,6 +12,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import ai.portfolio.dev.project.app.com.padoi.AsyncTasks.DownLoadImageTask;
@@ -26,18 +27,33 @@ import ai.portfolio.dev.project.app.com.padoi.Utils.PADOI;
  * Created by gabe on 3/23/2018.
  */
 
-public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.MyViewHolder> {
+public class BandAdapterRV extends RecyclerView.Adapter<BandAdapterRV.MyViewHolder> {
 
     List<BandUser> horizontalList;
     Context context;
     int layout_id;
     PADOIUser currUser;
 
-    public HorizontalAdapter(PADOIUser user,List<BandUser> horizontalList, Context context,int layout_id) {
-        this.horizontalList = horizontalList;
+    public BandAdapterRV(PADOIUser user, List<BandUser> horizontalList, Context context, int layout_id) {
+        this.horizontalList = horizontalList==null?new ArrayList<BandUser>():horizontalList;
         this.context = context;
         this.layout_id = layout_id;
         this.currUser  = user;
+    }
+
+    public void add(List<BandUser> data) {
+        if(this.horizontalList==null)horizontalList=new ArrayList<>();
+        horizontalList.addAll(data);
+        notifyDataSetChanged();
+    }
+
+    public void clear() {
+        if(horizontalList!=null)horizontalList.clear();
+        notifyDataSetChanged();
+    }
+
+    public List<BandUser> getList() {
+        return this.horizontalList;
     }
 
     /**
@@ -67,6 +83,7 @@ public class HorizontalAdapter extends RecyclerView.Adapter<HorizontalAdapter.My
             details.setVisibility(details.getVisibility()==View.VISIBLE?View.GONE:View.VISIBLE);
         }
         public boolean isFollowing(String bandID){
+            if(currUser.getLikesBandID()==null)return false;
             return currUser.getLikesBandID().contains(bandID);
         }
         public void bandLikeDislikeClicked(String bandID){

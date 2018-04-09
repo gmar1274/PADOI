@@ -1,19 +1,18 @@
 package ai.portfolio.dev.project.app.com.padoi.Activities;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -24,56 +23,63 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.facebook.login.LoginManager;
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.spotify.sdk.android.authentication.AuthenticationClient;
+import com.spotify.sdk.android.authentication.AuthenticationResponse;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import ai.portfolio.dev.project.app.com.padoi.AsyncTaskLoaders.LocationLoader;
+import ai.portfolio.dev.project.app.com.padoi.AsyncTaskLoaders.SpotifyHTTPRequest;
 import ai.portfolio.dev.project.app.com.padoi.AsyncTasks.DownLoadImageTask;
+import ai.portfolio.dev.project.app.com.padoi.Fragments.BandUserPageFragment;
 import ai.portfolio.dev.project.app.com.padoi.Fragments.MapViewFragment;
 import ai.portfolio.dev.project.app.com.padoi.Fragments.TrendingFragment;
-import ai.portfolio.dev.project.app.com.padoi.Interfaces.IFirebase;
-import ai.portfolio.dev.project.app.com.padoi.Models.BandUser;
+import ai.portfolio.dev.project.app.com.padoi.Interfaces.IPADOIFragments;
 import ai.portfolio.dev.project.app.com.padoi.Models.FBUser;
 import ai.portfolio.dev.project.app.com.padoi.Models.PADOIUser;
 import ai.portfolio.dev.project.app.com.padoi.R;
-import ai.portfolio.dev.project.app.com.padoi.Utils.PADOI;
+
+
+
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, LocationListener, IFirebase {
-    // The minimum distance to change Updates in meters
-    private static final long MIN_DISTANCE_CHANGE_FOR_UPDATES = 5000; // 10 meters
-    // The minimum time between updates in milliseconds
-    private static final long MIN_TIME_BW_UPDATES = 5; // 1 minute
+        implements NavigationView.OnNavigationItemSelectedListener , IPADOIFragments
+{
+
     private static final String TAG = "FIREBASE TAG";
-    private static final int TAG_CODE_PERMISSION_LOCATION =100 ;
-    private LocationManager mLocationManager;
-    private Location userLocation;
+    private static final int TAG_CODE_PERMISSION_LOCATION = 100;
+    private PADOIUser currentUser; // data from PADOI like likes friends etc...
+    private FBUser fbUser;//data from fb graph API
 
-    private List<BandUser> band_users;
-    private PADOIUser currentUser;
-    private FBUser fbUser;
-    private ProgressBar pb;
-    private FusedLocationProviderClient mFusedLocationClient;
+    private Location gpsLocation;
+    private LoaderManager.LoaderCallbacks<Location> loaderCallbacks = new LoaderManager.LoaderCallbacks<Location>() {
+        @Override
+        public Loader<Location> onCreateLoader(int id, Bundle args) {
+            return new LocationLoader(MainActivity.this.getApplicationContext());
+        }
 
-    /**
-     * Our Broadcast Receiver. We get notified that the data is ready this way.
-     */
-    // private BroadcastReceiver receiver;
+        @Override
+        public void onLoadFinished(Loader<Location> loader, Location data) {
+            gpsLocation = data;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    fetchPADOIUser(fbUser, gpsLocation);
+                }
+            }).start();
+            //Toast.makeText(MainActivity.this.getApplicationContext(),"Location: "+data,Toast.LENGTH_LONG).show();
+            //make BAND REQUEST from GPS nearby
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Location> loader) {
+        }
+    };
 
     /**
      * Defines callbacks for service binding, passed to bindService()
@@ -82,6 +88,8 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        this.getSupportLoaderManager().initLoader(R.string.LocationLoader, null, loaderCallbacks);
+
         String name = null, image_url = null, id = null;
         try {
             ///////////////////Get Extras
@@ -89,7 +97,7 @@ public class MainActivity extends AppCompatActivity
             name = login_bundle.getString("name").toString();
             image_url = login_bundle.getString("image_url");
             id = login_bundle.getString("id");
-            fbUser = new FBUser(name, image_url, id);
+            fbUser = new FBUser(id, image_url, name);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -111,72 +119,50 @@ public class MainActivity extends AppCompatActivity
         name_tv.setText(name);
         customGUISettings(headerView, this.findViewById(android.R.id.content).getRootView());
         ///////////////////////////
-        requestUserLocation();
 
     }
 
-
     /**
-     * Start a service to get gps. Check permission.
+     * Start a service to get gpsLoader. Check permission.
      */
     private void requestUserLocation() {
-        try {
-            mLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-            mLocationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, MIN_TIME_BW_UPDATES,
-                    MIN_DISTANCE_CHANGE_FOR_UPDATES, this);
-            ///////////////////////////////////////////////////////
-            mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-            mFusedLocationClient.getLastLocation()
-                    .addOnSuccessListener(this, new OnSuccessListener<Location>() {
-                        @Override
-                        public void onSuccess(Location location) {
-                            // Got last known location. In some rare situations this can be null.
-                            if (location != null) {
-                                userLocation = location;
-                                Toast.makeText(MainActivity.this,"LOCATION: "+location.toString(),Toast.LENGTH_LONG).show();// Logic to handle location object
-                            }
-                            Log.d("DEBUGGGGG","HERERRRRRRRRRR");
-                        }
-                    });
-            ///////////////////////////////////////////////////////
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                // No explanation needed; request the permission
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-
-                return;
-            }else{
-                ActivityCompat.requestPermissions(this, new String[] {
-                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                Manifest.permission.ACCESS_COARSE_LOCATION },
-                        TAG_CODE_PERMISSION_LOCATION);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            //the casee user is on updated OS runtime permission is needed to ask.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, TAG_CODE_PERMISSION_LOCATION);
             }
-        } catch (SecurityException e) {
-            e.printStackTrace();
+        } else {
+            //requestUserLocation();
+            //permission to get location
+
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case TAG_CODE_PERMISSION_LOCATION:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    requestUserLocation();
+                } else {//user did not grant permission
+                    Toast.makeText(this, "Permission to access GPS was denied. :(", Toast.LENGTH_LONG).show();
+                }
+                break;
+            default:
+                break;
+        }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
+
+
+
 
     /**
      * @param headerView - from navigation View
      * @param rootView   - from root view
      */
     private void customGUISettings(View headerView, View rootView) {
-        if (band_users == null) this.band_users = new ArrayList<>();
-        displayFragmentScreen(R.id.live_menu_item);
-        pb = (ProgressBar) rootView.findViewById(R.id.progress_bar_main);
-
+        displayFragmentScreen(R.id.trending_menu_item);
     }
 
     /**
@@ -219,6 +205,11 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Navigation onNavigationItemSelected listener implementation.
+     * @param item
+     * @return
+     */
     @Override
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
@@ -226,13 +217,13 @@ public class MainActivity extends AppCompatActivity
         if (id == R.id.fb_log_out_id) {
             logOut();
         } else {
-            displayFragmentScreen(id);
+            displayFragmentScreen(id);//displays a certain fragment user selected
         }
         return true;
     }
 
     /**
-     * Switch on id from the menu option method
+     * Switch on id from the menu option method to display a new functionality (fragment) on mainActivity screen.
      *
      * @param id
      * @return
@@ -241,11 +232,15 @@ public class MainActivity extends AppCompatActivity
         Fragment frag = null;
         switch (id) {
             case R.id.mapView_menu_item:
-                frag = new MapViewFragment();
+                frag = mapViewFragment();
                 break;
-            case R.id.live_menu_item:
-                if (currentUser == null && userLocation==null)return;//wait until location is updated then the program will run
-                frag = new TrendingFragment().setUser(currentUser);
+            case R.id.trending_menu_item:
+                if(gpsLocation!=null) {
+                  frag = trendingFragment();
+                }
+                break;
+            case R.id.band_user_frag_menu_item:
+                frag = bandUserPage();
                 break;
         }
         if (frag != null) {
@@ -257,8 +252,10 @@ public class MainActivity extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
     }
 
+
     private void logOut() {
         LoginManager.getInstance().logOut();
+        FirebaseAuth.getInstance().signOut();
         Toast.makeText(this, "Logged Out.", Toast.LENGTH_LONG).show();
         Intent moveToMain = new Intent(this, LoginActivity.class);
         moveToMain.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -293,124 +290,115 @@ public class MainActivity extends AppCompatActivity
         super.onStop();
     }
 
-    @Override
-    public void onLocationChanged(Location location) {
-        //Toast.makeText(this.getApplicationContext(),"Location: "+location,Toast.LENGTH_LONG).show();
-        this.userLocation = location;
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-        Toast.makeText(MainActivity.this, "Please Enable GPS and Internet", Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putParcelableArrayList(BandUser.class.toString(), (ArrayList<? extends Parcelable>) this.band_users);
     }
 
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
-        band_users = savedInstanceState.getParcelableArrayList(BandUser.class.toString());
+    }
+    private void fetchPADOIUser(FBUser user, Location loc){
+        //currentUser = new PADOIUser(user.getId(),loc);
+        displayFragmentScreen(R.id.trending_menu_item);
+    }
+    //////////////////////////////////
+    public Fragment getCurrentFragmentVisible() {
+        List<Fragment> allFragments = getSupportFragmentManager().getFragments();
+        //Log.d("LIST:::::",allFragments+"");
+        if (allFragments == null || allFragments.isEmpty()) {
+            return null;
+        }
+        return allFragments.get(0);
     }
 
-    /**
-     * Fetch PADOIUser from firebase database
-     *
-     * @param fb_ID
-     */
     @Override
-    public void fetchFirebaseUser(String fb_ID) {
-        FirebaseDatabase db = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = db.getReference(PADOI.DBPATH_USERS);
-        // Read from the database
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.exists()) {
-                    createNewUser(MainActivity.this.fbUser);
-                } else {
-                    // This method is called once with the initial value and again
-                    // whenever data at this location is updated.
-                    currentUser = dataSnapshot.getValue(PADOIUser.class);
-                    goToTrendingActivity(currentUser);
-                    Log.d(TAG, "Value is: " + currentUser);
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError error) {
-                // Failed to read value
-                Log.w(TAG, "Failed to read value.", error.toException());
-            }
-        });
+    public Fragment trendingFragment() {
+        TrendingFragment trend = new TrendingFragment();
+        trend.setLocation(gpsLocation);
+        trend.setUser(fbUser);
+        return  trend;
     }
 
-    private void goToTrendingActivity(PADOIUser currentUser) {
-        pb.setVisibility(View.GONE);
-        displayFragmentScreen(R.id.live_menu_item);
-    }
-
-    /**
-     * Fetch all band users from pagination
-     *
-     * @param band_users list of bands for the program
-     * @param pagination when needed to load more bands
-     */
     @Override
-    public void fetchFirebaseBandUsers(List<BandUser> band_users, int pagination) {
-
+    public Fragment mapViewFragment() {
+        MapViewFragment map = new MapViewFragment();
+        TrendingFragment t = (TrendingFragment) getCurrentFragmentVisible();
+        //Log.d("TREEEEEEEEEE",(t==null)+"......"+t+".....data:: "+t.getBandList());
+        if(t!=null){
+            map.setBandList(t.getBandList());
+        }
+        map.setLocation(gpsLocation);
+        return map;
     }
 
-    /**
-     * @param from
-     * @param radius
-     */
     @Override
-    public void fetchLiveBands(ai.portfolio.dev.project.app.com.padoi.Models.Location from, int radius) {
-
+    public Fragment bandUserPage() {
+        BandUserPageFragment bandUserPageFragment = new BandUserPageFragment();
+        return  bandUserPageFragment;
     }
 
-    /**
+
+    public static final int REQUEST_CODE=1337;
+    // TODO: Replace with your client ID
+    public static final String CLIENT_ID = "9fb00fda297a47e193f9f61b6d570f0f";
+
+    // TODO: Replace with your redirect URI
+    public static final String REDIRECT_URI = "https://padoi-196001.firebaseio.com/";//"https://open.spotify.com/user/";//"yourcustomprotocol://callback";
+    /**********
      *
      */
-    @Override
-    public void fetchAllLiveBands() {
-
-    }
-
     /**
-     * ADDS current user to the PADOI database.
-     *
-     * @param fb_user
+     * When requestCode equals REQUEST_CODE: then Spotify api has been called. Figure out if JSON response was valid or not.
+     * @param requestCode
+     * @param resultCode
+     * @param intent
      */
     @Override
-    public void createNewUser(FBUser fb_user) {
-        FirebaseDatabase db = FirebaseDatabase.getInstance();
-        DatabaseReference ref = db.getReference(PADOI.DBPATH_USERS + "/" + fb_user.getId());
-        ref.setValue(currentUser).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                        if(task.isSuccessful()){
-                            Toast.makeText(MainActivity.this.getApplicationContext(),"SUCCS LOG IN",Toast.LENGTH_LONG).show();
-                           goToTrendingActivity(currentUser);
-                        }else{
-                            Log.e("ERR",task.toString());
-                            Toast.makeText(MainActivity.this.getApplicationContext(),"FAILED LOG IN",Toast.LENGTH_LONG).show();
+    public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+        super.onActivityResult(requestCode, resultCode, intent);
+        Log.d("HERRRRRR: ","HERRRR: REQUEST: "+resultCode +" .. "+requestCode);
+        // Check if result comes from the correct activity
+        if (requestCode == REQUEST_CODE) {
+            final AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
+            Log.d("SPOTIFY TAG:::::","TOKEN:: "+response.getAccessToken()+" .... "+response+" ...CODE..."+response.getCode());
+            switch (response.getType()) {
+                // Response was successful and contains auth token
+                case TOKEN:
+                    Toast.makeText(MainActivity.this.getApplicationContext(),"Spotify account is linked!!",Toast.LENGTH_LONG).show();
+
+                    android.support.v4.app.LoaderManager.LoaderCallbacks<String> spotifyCallback =  new android.support.v4.app.LoaderManager.LoaderCallbacks<String>() {
+                        @Override
+                        public android.support.v4.content.Loader<String> onCreateLoader(int id, Bundle args) {
+                            return new SpotifyHTTPRequest(MainActivity.this,response.getAccessToken());
                         }
+
+                        @Override
+                        public void onLoadFinished(android.support.v4.content.Loader<String> loader, String data) {
+                            Log.d("SPOTIFY API:::::::",data);
+                        }
+
+                        @Override
+                        public void onLoaderReset(android.support.v4.content.Loader<String> loader) {
+
+                        }
+                    };
+                 this.getSupportLoaderManager().initLoader(R.string.SPOTIFYAPI,null,spotifyCallback);
+                    // Handle successful response
+                    break;
+
+                // Auth flow returned an error
+                case ERROR:
+                    Toast.makeText(this,"Spotify error. :(",Toast.LENGTH_LONG).show();
+                    // Handle error response
+                    break;
+
+                // Most likely auth flow was cancelled
+                default:
+                    // Handle other cases
             }
-        });
+        }
     }
 }

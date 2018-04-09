@@ -1,6 +1,7 @@
 package ai.portfolio.dev.project.app.com.padoi.Fragments;
 
 import android.content.Context;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -15,6 +16,10 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import ai.portfolio.dev.project.app.com.padoi.Models.BandUser;
 import ai.portfolio.dev.project.app.com.padoi.R;
 
 /**
@@ -36,7 +41,8 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback {
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
-
+    private Location userLoc;
+    private List<BandUser> bandList;
     public MapViewFragment() {
         // Required empty public constructor
     }
@@ -108,12 +114,22 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback {
     public void onMapReady(GoogleMap googleMap) {
             // Add a marker in Sydney, Australia,
             // and move the map's camera to the same location.
-            LatLng sydney = new LatLng(-33.852, 151.211);
-            googleMap.addMarker(new MarkerOptions().position(sydney)
-                    .title("Marker in Sydney"));
-            googleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+            LatLng defualt = new LatLng(-33.852, 151.211);
+            if(userLoc!=null)defualt = new LatLng(userLoc.getLatitude(),userLoc.getLongitude());
+            googleMap.addMarker(new MarkerOptions().position(defualt)
+                    .title("Me").alpha(.5f));
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defualt,15));//15 is street view and 20 is buildings
 
+           DEBUG(googleMap, bandList);
 
+    }
+
+    private void DEBUG(GoogleMap googleMap, List<BandUser> bandList) {
+        for(BandUser b : bandList){
+            BandUser band =b;
+            band.getNearDistDEBUG(userLoc);
+            googleMap.addMarker(new MarkerOptions().position(new LatLng(band.getLocation().getLatitude(),band.getLocation().getLongitude())).title(band.getName()));
+        }
     }
 
     /**
@@ -129,5 +145,18 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback {
     public interface OnFragmentInteractionListener {
         // TODO: Update argument type and name
         void onFragmentInteraction(Uri uri);
+    }
+
+    /**
+     * From MainActivity
+     * @param userLocation
+     */
+    public Fragment setLocation(Location userLocation){
+        this.userLoc = userLocation;
+        return this;
+    }
+    public Fragment setBandList(List<BandUser> list){
+        this.bandList = new ArrayList<>(list);
+        return this;
     }
 }

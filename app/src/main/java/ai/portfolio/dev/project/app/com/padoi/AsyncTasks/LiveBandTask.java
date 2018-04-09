@@ -17,7 +17,7 @@ import java.util.List;
 import ai.portfolio.dev.project.app.com.padoi.Models.BandUser;
 import ai.portfolio.dev.project.app.com.padoi.Models.PADOIUser;
 import ai.portfolio.dev.project.app.com.padoi.R;
-import ai.portfolio.dev.project.app.com.padoi.RecycleViewAdpaters.HorizontalAdapter;
+import ai.portfolio.dev.project.app.com.padoi.RecycleViewAdpaters.BandAdapterRV;
 
 /**
  * Created by gabe on 3/17/2018.
@@ -85,7 +85,7 @@ public class LiveBandTask extends AsyncTask<String,Void,String> {
         Type founderListType = new TypeToken<ArrayList<BandUser>>(){}.getType();
         List<BandUser> list = gson.fromJson(result, founderListType);
 
-        HorizontalAdapter horizontalAdapter = new HorizontalAdapter(user,list, context, R.layout.trending_layout);
+        BandAdapterRV horizontalAdapter = new BandAdapterRV(user,list, context, R.layout.trending_layout);
         LinearLayoutManager horizontalLayoutManager = new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false);
         //RecyclerView horizontal_recycler_view = (RecyclerView)rootView.findViewById(R.id.recycle_view_BANDS);
         rv.setLayoutManager(horizontalLayoutManager);

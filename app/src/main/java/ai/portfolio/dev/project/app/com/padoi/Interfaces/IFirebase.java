@@ -15,5 +15,5 @@ public interface IFirebase {
     void fetchFirebaseBandUsers(List<BandUser> bandUsers, int pagination);
     void fetchLiveBands(Location from, int radius);
     void fetchAllLiveBands();
-    void createNewUser(FBUser fb_user);
+    void createNewUser(FBUser fb_user, android.location.Location loc);
 }

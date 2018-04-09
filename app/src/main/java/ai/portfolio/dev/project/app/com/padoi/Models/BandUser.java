@@ -3,6 +3,8 @@ package ai.portfolio.dev.project.app.com.padoi.Models;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.Random;
+
 /**
  * Created by gabe on 3/19/2018.
  */
@@ -91,6 +93,11 @@ public class BandUser implements Parcelable{
     }
     public String toString(){
         return "BandUser:{id:"+id+", name:"+ name +", image_url:"+this.image_url +", "+location+"}";
+    }
+    //pure testing...
+    public void getNearDistDEBUG(android.location.Location user){
+        Random r = new Random();
+        this.location = new Location(user.getLatitude()+r.nextDouble(),user.getLongitude()+r.nextDouble());
     }
 
 

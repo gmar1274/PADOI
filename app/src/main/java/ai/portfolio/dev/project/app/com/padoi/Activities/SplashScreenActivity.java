@@ -39,7 +39,7 @@ public class SplashScreenActivity extends AppCompatActivity implements ISplashSc
         ImageView iv = (ImageView)findViewById(R.id.splash_iv);
         ObjectAnimator  an = ObjectAnimator.ofFloat(iv,
                 "rotation", 0f, 360f);
-        an.setDuration(2000); // miliseconds
+        an.setDuration(1000); // miliseconds
         an.start();
 
         mAuth = FirebaseAuth.getInstance();

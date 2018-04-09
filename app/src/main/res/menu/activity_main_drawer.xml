@@ -5,7 +5,7 @@
     tools:showIn="navigation_view">
 
     <item
-        android:id="@+id/live_menu_item"
+        android:id="@+id/trending_menu_item"
         android:icon="@drawable/ic_live"
         android:title="Live" />
     <item
@@ -37,9 +37,9 @@
     <item android:title="Settings">
         <menu>
             <item
-                android:id="@+id/nav_manage"
-                android:icon="@drawable/ic_menu_manage"
-                android:title="Tools" />
+                android:id="@+id/band_user_frag_menu_item"
+                android:icon="@drawable/ic_verified"
+                android:title="@string/settings_link_bandprofile" />
             <item
                 android:id="@+id/fb_log_out_id"
                 android:icon="@drawable/com_facebook_button_icon"

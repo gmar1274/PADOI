@@ -11,4 +11,5 @@
     <color name="black_overlay">#66000000</color>
     <color name="red">#ff0000</color>
     <color name="pic_overlay">#d7d7d7</color>
+    <color name="verifyColor">#202d77</color>
 </resources>

@@ -23,10 +23,11 @@ import ai.portfolio.dev.project.app.com.padoi.R;
  */
 
 public class PADOI {
-    public static final int WIDTH=300,HEIGHT=300;//url image fb
+    public static final int WIDTH=400,HEIGHT=400;//url image fb
     public static final String HTTP_RESPONSE_LIVE_BANDS="LiveBandAPI";
     public static final String FOLDER_USERS_IMAGES = "USER_IMAGES";
     public static final String DBPATH_USERS = "users";
+    public static final String FOLDER_SETTINGS_PRIVATE="USER_SETTINGS";
 
     /**
      * DEPRACTED DO NOT USE...https://stackoverflow.com/questions/29188127/android-attempted-to-serialize-forgot-to-register-a-type-adapter

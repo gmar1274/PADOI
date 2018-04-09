@@ -9,6 +9,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import ai.portfolio.dev.project.app.com.padoi.AsyncTasks.DownLoadImageTask;
@@ -26,6 +27,10 @@ public class BandUserAdapter extends ArrayAdapter<BandUser> {
         public BandUserAdapter(Context context, int resource,List<BandUser> list) {
             super(context, resource,list);
             this.list = list;
+        }
+        public BandUserAdapter(Context context,int res){
+            super(context,res);
+            list = new ArrayList<>();
         }
         @Override
         public BandUser getItem(int position) {
@@ -64,4 +69,8 @@ public class BandUserAdapter extends ArrayAdapter<BandUser> {
         public int getSize(){
             return  this.list.size();
         }
+
+    public List<BandUser> getList() {
+            return this.list;
     }
+}

@@ -1,13 +1,17 @@
 package ai.portfolio.dev.project.app.com.padoi.Activities;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Display;
@@ -15,6 +19,7 @@ import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.facebook.AccessToken;
 import com.facebook.AccessTokenTracker;
@@ -47,6 +52,7 @@ import ai.portfolio.dev.project.app.com.padoi.Utils.PADOI;
 
 public class LoginActivity extends AppCompatActivity implements IUserAuth, ILoginSuccess {
 
+    private static final int TAG_CODE_PERMISSION_LOCATION =1 ;
     private CallbackManager callbackManager;
     private LoginButton loginButton;
     private AccessTokenTracker accessTokenTracker;
@@ -117,6 +123,7 @@ public class LoginActivity extends AppCompatActivity implements IUserAuth, ILogi
         profileTracker.startTracking();
         View rootView =this.findViewById(android.R.id.content).getRootView();
         animate(rootView);
+        requestUserLocation();
     }
 
     /**
@@ -214,7 +221,7 @@ protected void onStop(){
                                         public void onCompleted(GraphResponse response) {
 
                                             Profile prof =  getProfileFromFraphResponse(response); // Insert your code here
-                                            mainMenu(prof);
+                                            LoginActivity.this.prof = prof;
                                         }
                                     });
                             request.executeAsync();
@@ -222,7 +229,7 @@ protected void onStop(){
                         } else {
                             // If sign in fails, display a message to the user.
                             Log.d("firebase sign in", "signInWithCredential:failure", task.getException());
-                            //Toast.makeText(FacebookLoginActivity.this, "Authentication failed.Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LoginActivity.this, "Authentication failed. Network error. :(",Toast.LENGTH_SHORT).show();
                            // updateUI(null);
                         }
                         // ...
@@ -255,11 +262,11 @@ protected void onStop(){
         FirebaseUser currentUser = mAuth.getCurrentUser();
         mainMenu(prof);
     }
-
+private Profile prof;
 @Override
     public void mainMenu(Profile prof) {
+        this.prof = prof;
         if(prof != null) {
-            Log.d("firebase sign in", "signInWithCredential:SUCCESSS");
             Intent intent = new Intent(this, MainActivity.class);
             intent.putExtra("name", prof.getName());
             intent.putExtra("image_url", prof.getProfilePictureUri(PADOI.WIDTH, PADOI.HEIGHT).toString());
@@ -267,5 +274,35 @@ protected void onStop(){
             startActivity(intent);
             finish();
         }
+    }
+    /**
+     * Start a service to get gpsLoader. Check permission.
+     */
+    private void requestUserLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            //the casee user is on updated OS runtime permission is needed to ask.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, TAG_CODE_PERMISSION_LOCATION);
+            }
+        } else {
+            //requestUserLocation();
+            //permission to get location
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case TAG_CODE_PERMISSION_LOCATION:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                } else {//user did not grant permission
+                    Toast.makeText(this, "Permission to access GPS was denied. :(", Toast.LENGTH_LONG).show();
+                }
+                break;
+            default:
+                break;
+        }
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 }
