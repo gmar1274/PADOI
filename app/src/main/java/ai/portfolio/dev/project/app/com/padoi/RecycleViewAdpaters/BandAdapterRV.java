@@ -42,6 +42,7 @@ public class BandAdapterRV extends RecyclerView.Adapter<BandAdapterRV.MyViewHold
     }
 
     public void add(List<BandUser> data) {
+        if(data==null)return;
         if(this.horizontalList==null)horizontalList=new ArrayList<>();
         horizontalList.addAll(data);
         notifyDataSetChanged();

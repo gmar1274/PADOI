@@ -18,7 +18,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -34,7 +33,6 @@ import com.spotify.sdk.android.authentication.AuthenticationResponse;
 import java.util.List;
 
 import ai.portfolio.dev.project.app.com.padoi.AsyncTaskLoaders.LocationLoader;
-import ai.portfolio.dev.project.app.com.padoi.AsyncTaskLoaders.SpotifyHTTPRequest;
 import ai.portfolio.dev.project.app.com.padoi.AsyncTasks.DownLoadImageTask;
 import ai.portfolio.dev.project.app.com.padoi.Fragments.BandUserPageFragment;
 import ai.portfolio.dev.project.app.com.padoi.Fragments.MapViewFragment;
@@ -53,23 +51,24 @@ public class MainActivity extends AppCompatActivity
 
     private static final String TAG = "FIREBASE TAG";
     private static final int TAG_CODE_PERMISSION_LOCATION = 100;
-    private PADOIUser currentUser; // data from PADOI like likes friends etc...
-    private FBUser fbUser;//data from fb graph API
+    private PADOIUser mCurrentUser; // data from PADOI like likes friends etc...
+    private FBUser mFbUser;//data from fb graph API
 
-    private Location gpsLocation;
+    private Location mGpsLocation;
     private LoaderManager.LoaderCallbacks<Location> loaderCallbacks = new LoaderManager.LoaderCallbacks<Location>() {
         @Override
         public Loader<Location> onCreateLoader(int id, Bundle args) {
+
             return new LocationLoader(MainActivity.this.getApplicationContext());
         }
 
         @Override
         public void onLoadFinished(Loader<Location> loader, Location data) {
-            gpsLocation = data;
+            mGpsLocation = data;
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    fetchPADOIUser(fbUser, gpsLocation);
+                    fetchPADOIUser(mFbUser, mGpsLocation);
                 }
             }).start();
             //Toast.makeText(MainActivity.this.getApplicationContext(),"Location: "+data,Toast.LENGTH_LONG).show();
@@ -97,7 +96,7 @@ public class MainActivity extends AppCompatActivity
             name = login_bundle.getString("name").toString();
             image_url = login_bundle.getString("image_url");
             id = login_bundle.getString("id");
-            fbUser = new FBUser(id, image_url, name);
+            mFbUser = new FBUser(id, image_url, name);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -235,7 +234,7 @@ public class MainActivity extends AppCompatActivity
                 frag = mapViewFragment();
                 break;
             case R.id.trending_menu_item:
-                if(gpsLocation!=null) {
+                if(mGpsLocation !=null) {
                   frag = trendingFragment();
                 }
                 break;
@@ -301,7 +300,7 @@ public class MainActivity extends AppCompatActivity
         super.onRestoreInstanceState(savedInstanceState);
     }
     private void fetchPADOIUser(FBUser user, Location loc){
-        //currentUser = new PADOIUser(user.getId(),loc);
+        //mCurrentUser = new PADOIUser(user.getId(),loc);
         displayFragmentScreen(R.id.trending_menu_item);
     }
     //////////////////////////////////
@@ -317,8 +316,8 @@ public class MainActivity extends AppCompatActivity
     @Override
     public Fragment trendingFragment() {
         TrendingFragment trend = new TrendingFragment();
-        trend.setLocation(gpsLocation);
-        trend.setUser(fbUser);
+        trend.setLocation(mGpsLocation);
+        trend.setUser(mFbUser);
         return  trend;
     }
 
@@ -330,7 +329,7 @@ public class MainActivity extends AppCompatActivity
         if(t!=null){
             map.setBandList(t.getBandList());
         }
-        map.setLocation(gpsLocation);
+        map.setLocation(mGpsLocation);
         return map;
     }
 
@@ -359,33 +358,17 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
-        Log.d("HERRRRRR: ","HERRRR: REQUEST: "+resultCode +" .. "+requestCode);
+        //Log.d("HERRRRRR: ","HERRRR: REQUEST: "+resultCode +" .. "+requestCode);
         // Check if result comes from the correct activity
         if (requestCode == REQUEST_CODE) {
             final AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
-            Log.d("SPOTIFY TAG:::::","TOKEN:: "+response.getAccessToken()+" .... "+response+" ...CODE..."+response.getCode());
+          //  Log.d("SPOTIFY TAG:::::","TOKEN:: "+response.getAccessToken()+" .... "+response+" ...CODE..."+response.getCode());
             switch (response.getType()) {
                 // Response was successful and contains auth token
                 case TOKEN:
                     Toast.makeText(MainActivity.this.getApplicationContext(),"Spotify account is linked!!",Toast.LENGTH_LONG).show();
-
-                    android.support.v4.app.LoaderManager.LoaderCallbacks<String> spotifyCallback =  new android.support.v4.app.LoaderManager.LoaderCallbacks<String>() {
-                        @Override
-                        public android.support.v4.content.Loader<String> onCreateLoader(int id, Bundle args) {
-                            return new SpotifyHTTPRequest(MainActivity.this,response.getAccessToken());
-                        }
-
-                        @Override
-                        public void onLoadFinished(android.support.v4.content.Loader<String> loader, String data) {
-                            Log.d("SPOTIFY API:::::::",data);
-                        }
-
-                        @Override
-                        public void onLoaderReset(android.support.v4.content.Loader<String> loader) {
-
-                        }
-                    };
-                 this.getSupportLoaderManager().initLoader(R.string.SPOTIFYAPI,null,spotifyCallback);
+                    BandUserPageFragment frag= (BandUserPageFragment) getCurrentFragmentVisible();
+                    frag.spotifyAccessTokenVerified(response);
                     // Handle successful response
                     break;
 

@@ -1,19 +1,21 @@
 package ai.portfolio.dev.project.app.com.padoi.Fragments;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.FrameLayout;
 
 import com.spotify.sdk.android.authentication.AuthenticationClient;
 import com.spotify.sdk.android.authentication.AuthenticationRequest;
 import com.spotify.sdk.android.authentication.AuthenticationResponse;
 
+import ai.portfolio.dev.project.app.com.padoi.AsyncTaskLoaders.SpotifyHTTPRequest;
 import ai.portfolio.dev.project.app.com.padoi.Interfaces.IBandAuth;
 import ai.portfolio.dev.project.app.com.padoi.R;
 
@@ -46,7 +48,9 @@ public class BandUserPageFragment extends Fragment implements IBandAuth{
         boolean isLinked =false;
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_band_user_page, container, false);
-        SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
+        ///save options to phone
+        //
+        //SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
         Button verifyBtn = (Button) rootView.findViewById(R.id.verifyBtn);
         verifyBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -54,16 +58,11 @@ public class BandUserPageFragment extends Fragment implements IBandAuth{
                     verifyBandUser();
             }
         });
-        FrameLayout bandLay = (FrameLayout)rootView.findViewById(R.id.bandLayout);
-        if(sharedPref.contains(isLINKED) && sharedPref.getBoolean(isLINKED,isLinked)){
-            verifyBtn.setVisibility(View.GONE);
-        }
+        //ConstraintLayout bandLay = (ConstraintLayout)rootView.findViewById(R.id.bandLayout);
+        //if(sharedPref.contains(isLINKED) && sharedPref.getBoolean(isLINKED,isLinked)){
+        //    verifyBtn.setVisibility(View.GONE);
+        //}
         //SharedPreferences.Editor editor = sharedPref.edit();
-
-
-
-
-
 
         return rootView;
     }
@@ -78,6 +77,11 @@ public class BandUserPageFragment extends Fragment implements IBandAuth{
         super.onDetach();
     }
 
+    /**
+     * This method requests Authorization from Spotify to obtain a valid access token. Flow is in this fragment call
+     * spotify api sends a request to parent ACTIVITY and then send result to Parent activity
+     *
+     */
     @Override
     public void verifyBandUser() {
 
@@ -85,8 +89,34 @@ public class BandUserPageFragment extends Fragment implements IBandAuth{
         AuthenticationRequest.Builder builder = new AuthenticationRequest.Builder(CLIENT_ID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
         builder.setScopes(new String[]{"user-read-private"});
         AuthenticationRequest request = builder.build();
-
         AuthenticationClient.openLoginActivity(getActivity(), REQUEST_CODE, request);
    }
 
+    /**
+     * This method picks up from verifyBandUser()
+     * in parent activity get this fragment reference name and then comes here to then
+     * send api request to spotify using the refreshed current accesstoken to get user data.
+     * @param spotifyResponse
+     */
+
+    public void spotifyAccessTokenVerified(final AuthenticationResponse spotifyResponse) {
+       LoaderManager.LoaderCallbacks<String> spotifyCallback =  new android.support.v4.app.LoaderManager.LoaderCallbacks<String>() {
+            @Override
+            public android.support.v4.content.Loader<String> onCreateLoader(int id, Bundle args) {//makes HTTP request to spotifiy endpoint
+                return new SpotifyHTTPRequest(BandUserPageFragment.this.getContext(),spotifyResponse.getAccessToken());
+            }
+
+            @Override
+            public void onLoadFinished(Loader<String> loader, String data) {//api request was completed
+                // user successfully
+                Log.d("SPOTIFY API:::::::",data);
+            }
+
+            @Override
+            public void onLoaderReset(android.support.v4.content.Loader<String> loader) {
+
+            }
+        };
+        this.getActivity().getSupportLoaderManager().initLoader(R.string.SPOTIFYAPI,null,spotifyCallback);
+    }
 }

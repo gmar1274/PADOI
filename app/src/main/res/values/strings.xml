@@ -1,4 +1,9 @@
 <resources>
+
+    <string name="facebook_application_id" translatable="false">168783553690670</string>
+    <string name="facebook_login_protocol_scheme" translatable="false">168783553690670</string>
+
+
     <string name="app_name">PADOI</string>
     <string name="facebook_app_id">168783553690670</string>
     <string name="fb_login_protocol_scheme">fb168783553690670</string>
@@ -99,7 +104,7 @@
     <string name="pref_title_vibrate">Vibrate</string>
 
 
-    <string name="settings_link_bandprofile">Link Band Profile</string>
+    <string name="settings_link_bandprofile">Link Artist Profile</string>
     <string name="SPOTIFYAPI">SpotifyAPIRequest</string>
-
+    <string name="verify_description">Are you an Artist? Verify your account here to be featured on this app and grow your fanbase!</string>
 </resources>
