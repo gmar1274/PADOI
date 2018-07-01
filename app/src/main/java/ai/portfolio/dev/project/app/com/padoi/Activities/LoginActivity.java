@@ -13,6 +13,7 @@ import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Display;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
@@ -33,13 +34,18 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+import ai.portfolio.dev.project.app.com.padoi.Interfaces.IPadoiAuth;
+import ai.portfolio.dev.project.app.com.padoi.Models.PadoiUser;
 import ai.portfolio.dev.project.app.com.padoi.R;
+import ai.portfolio.dev.project.app.com.padoi.Utils.PADOI;
 
-public class LoginActivity extends AppCompatActivity{
+public class LoginActivity extends AppCompatActivity implements IPadoiAuth{
         private static final int TAG_CODE_PERMISSION_LOCATION =1 ;
         private static final String TAG = "firebase";
         private CallbackManager mCallbackManager;
@@ -58,20 +64,15 @@ public class LoginActivity extends AppCompatActivity{
             loginButton.registerCallback(mCallbackManager, new FacebookCallback<LoginResult>() {
                 @Override
                 public void onSuccess(LoginResult loginResult) {
-                    //Log.d(TAG, "facebook:onSuccess:" + loginResult);
                     handleFacebookAccessToken(loginResult.getAccessToken());
                 }
 
                 @Override
                 public void onCancel() {
-                    //Log.d(TAG, "facebook:onCancel");
-                    // ...
                 }
 
                 @Override
                 public void onError(FacebookException error) {
-                    //Log.d(TAG, "facebook:onError", error);
-                    // ...
                 }
             });
             View rootView =this.findViewById(android.R.id.content).getRootView();
@@ -150,13 +151,14 @@ public class LoginActivity extends AppCompatActivity{
         @Override
         public void onStart() {
             super.onStart();
-            // Check if user is signed in (non-null) and update UI accordingly.
-            FirebaseUser currentUser = mAuth.getCurrentUser();
-            if(currentUser!=null)continueToApp(currentUser);
         }
-        private void handleFacebookAccessToken(AccessToken token) {
-           // Log.d(TAG, "handleFacebookAccessToken:" + token);
 
+    /**
+     *
+     * @param token api auth token from fb
+     */
+    private void handleFacebookAccessToken(AccessToken token) {
+           // Log.d(TAG, "handleFacebookAccessToken:" + token);
             AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
             mAuth.signInWithCredential(credential)
                     .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -165,12 +167,25 @@ public class LoginActivity extends AppCompatActivity{
                             if (task.isSuccessful()) {
                                 // Sign in success, update UI with the signed-in user's information
                                 //Log.d(TAG, "signInWithCredential:success");
-                                FirebaseUser user = mAuth.getCurrentUser();
-                                continueToApp(user);
+                                final FirebaseUser user = mAuth.getCurrentUser();
+                                final PadoiUser padoiUser = new PadoiUser(user);
+                                DatabaseReference ref = addNewPadoiUser(user);
+                                ref.setValue(padoiUser).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                            if(task.isSuccessful())continueToApp(padoiUser);
+                                            else {
+                                                Toast.makeText(LoginActivity.this,"Network error :( ",Toast.LENGTH_LONG).show();
+                                                Log.e("Firebase API error","Database write error");
+                                                finish();
+                                            }
+                                    }
+                                });
+
 
                             } else {
                                 // If sign in fails, display a message to the user.
-                                //Log.w(TAG, "signInWithCredential:failure", task.getException());
+                                Log.e("Firebase API error","Auth token fb sdk error");
                                 Toast.makeText(LoginActivity.this, "Authentication failed.",
                                         Toast.LENGTH_SHORT).show();
                                 //updateUI(null);
@@ -180,15 +195,17 @@ public class LoginActivity extends AppCompatActivity{
                         }
                     });
         }
-        public void continueToApp(FirebaseUser prof) {
-            if(prof!=null) {
-                Intent intent = new Intent(this, MainActivity.class);
-                intent.putExtra("name", prof.getDisplayName());
-                intent.putExtra("image_url", prof.getPhotoUrl().toString()+"?type=large");
-                intent.putExtra("id", prof.getUid());
-                startActivity(intent);
-                finish();
-            }
+    /**
+     * Continues to main app with  PADIO  user from firebase db.
+     * @param padoiUser
+     */
+    public void continueToApp(PadoiUser padoiUser) {
+            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+            Bundle mBundle = new Bundle();
+            mBundle.putParcelable(PADOI.USER, padoiUser);
+            intent.putExtras(mBundle);
+            startActivity(intent);
+            finish();
         }
         /**
          * Start a service to get gpsLoader. Check permission.
@@ -220,4 +237,14 @@ public class LoginActivity extends AppCompatActivity{
             }
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         }
+
+    @Override
+    public DatabaseReference fetchPadoiUser(FirebaseUser user) {
+        return null;
     }
+
+    @Override
+    public DatabaseReference addNewPadoiUser(FirebaseUser user) {
+        return FirebaseDatabase.getInstance().getReference().child(PADOI.DBPATH_USERS+"/"+user.getUid());
+    }
+}

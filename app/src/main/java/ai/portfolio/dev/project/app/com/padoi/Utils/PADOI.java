@@ -5,9 +5,13 @@ import android.content.ContextWrapper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.util.Log;
 import android.webkit.MimeTypeMap;
 import android.widget.ImageButton;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,11 +27,15 @@ import ai.portfolio.dev.project.app.com.padoi.R;
  */
 
 public class PADOI {
+    public static final String USER="FirebasePadoiUser";
     public static final int WIDTH=400,HEIGHT=400;//url image fb
     public static final String HTTP_RESPONSE_LIVE_BANDS="LiveBandAPI";
     public static final String FOLDER_USERS_IMAGES = "USER_IMAGES";
     public static final String DBPATH_USERS = "users";
     public static final String FOLDER_SETTINGS_PRIVATE="USER_SETTINGS";
+    public static final String USER_LOC_TAG = "USER_LOC";
+    public static final int API_LIMIT =100;
+    public static final String DBPATH_BAND_USERS = "band_users" ;
 
     /**
      * DEPRACTED DO NOT USE...https://stackoverflow.com/questions/29188127/android-attempted-to-serialize-forgot-to-register-a-type-adapter
@@ -146,4 +154,19 @@ public class PADOI {
             return;
         }
     }
+
+    /**
+     * Singleton database reference
+     * @param db_path endpoint needs to be specified
+     * @return
+     */
+    public static DatabaseReference makeAPIRequestTo(String db_path) {
+        DatabaseReference myRef = FirebaseDatabase.getInstance().getReference(db_path);
+        return myRef;
+    }
+
+    public static String image_url(Uri photoUrl) {
+        return photoUrl.toString()+"?type=large";
+    }
+
 }

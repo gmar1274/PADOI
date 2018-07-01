@@ -1,5 +1,7 @@
 package ai.portfolio.dev.project.app.com.padoi.Models;
 
+import com.google.gson.Gson;
+
 /**
  * Created by gabe on 3/19/2018.
  */
@@ -10,7 +12,6 @@ public class Location {
         this.latitude=lat;
         this.longitude=lon;
     }
-
     public double getLatitude() {
         return latitude;
     }
@@ -27,6 +28,7 @@ public class Location {
         this.longitude = longitude;
     }
     public String toString(){
-        return "Location: {latitude: "+latitude+", longitude: "+longitude+"}";
+        String loc = new Gson().toJson(this);
+        return loc;
     }
 }

@@ -38,24 +38,25 @@ import ai.portfolio.dev.project.app.com.padoi.Fragments.BandUserPageFragment;
 import ai.portfolio.dev.project.app.com.padoi.Fragments.MapViewFragment;
 import ai.portfolio.dev.project.app.com.padoi.Fragments.TrendingFragment;
 import ai.portfolio.dev.project.app.com.padoi.Interfaces.IPADOIFragments;
-import ai.portfolio.dev.project.app.com.padoi.Models.FBUser;
-import ai.portfolio.dev.project.app.com.padoi.Models.PADOIUser;
+import ai.portfolio.dev.project.app.com.padoi.Models.PadoiUser;
 import ai.portfolio.dev.project.app.com.padoi.R;
-
-
+import ai.portfolio.dev.project.app.com.padoi.Utils.PADOI;
 
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener , IPADOIFragments
-{
-
+        implements NavigationView.OnNavigationItemSelectedListener , IPADOIFragments {
+    private int mOffest = 0;//API offset..always assume
     private static final String TAG = "FIREBASE TAG";
     private static final int TAG_CODE_PERMISSION_LOCATION = 100;
-    private PADOIUser mCurrentUser; // data from PADOI like likes friends etc...
-    private FBUser mFbUser;//data from fb graph API
+    private PadoiUser mCurrentUser; // data from PADOI like likes friends etc...
+
 
     private Location mGpsLocation;
-    private LoaderManager.LoaderCallbacks<Location> loaderCallbacks = new LoaderManager.LoaderCallbacks<Location>() {
+    /**
+     * Should already have location cached before entering the main app. So, assume location is already cachec.
+     * Need to fetch
+     */
+    private LoaderManager.LoaderCallbacks<Location> mLocationLoaderCallback = new LoaderManager.LoaderCallbacks<Location>() {
         @Override
         public Loader<Location> onCreateLoader(int id, Bundle args) {
 
@@ -68,18 +69,15 @@ public class MainActivity extends AppCompatActivity
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    fetchPADOIUser(mFbUser, mGpsLocation);
+                    readyToStartApp(mCurrentUser,mGpsLocation);
                 }
             }).start();
-            //Toast.makeText(MainActivity.this.getApplicationContext(),"Location: "+data,Toast.LENGTH_LONG).show();
-            //make BAND REQUEST from GPS nearby
         }
 
         @Override
-        public void onLoaderReset(Loader<Location> loader) {
+        public void onLoaderReset(Loader<Location> loader) {//nothing
         }
     };
-
     /**
      * Defines callbacks for service binding, passed to bindService()
      */
@@ -87,20 +85,17 @@ public class MainActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        this.getSupportLoaderManager().initLoader(R.string.LocationLoader, null, loaderCallbacks);
-
-        String name = null, image_url = null, id = null;
+        FirebaseAuth.getInstance().signOut();
+        LoginManager.getInstance().logOut();
         try {
             ///////////////////Get Extras
             Bundle login_bundle = getIntent().getExtras();
-            name = login_bundle.getString("name").toString();
-            image_url = login_bundle.getString("image_url");
-            id = login_bundle.getString("id");
-            mFbUser = new FBUser(id, image_url, name);
+            mCurrentUser = (PadoiUser) login_bundle.getParcelable(PADOI.USER);
+            this.getSupportLoaderManager().initLoader(R.string.LocationLoader, null, mLocationLoaderCallback);
         } catch (Exception e) {
             e.printStackTrace();
+            finish();//dont have permission to access app
         }
-
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -113,9 +108,9 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         View headerView = navigationView.getHeaderView(0);
         ImageView iv = (ImageView) headerView.findViewById(R.id.fbUserImageView);
-        getUserPic(iv, image_url);
+        fetchUserPic(iv, mCurrentUser.getImage_url());
         TextView name_tv = (TextView) headerView.findViewById(R.id.user_name_tv);
-        name_tv.setText(name);
+        name_tv.setText(mCurrentUser.getName());
         customGUISettings(headerView, this.findViewById(android.R.id.content).getRootView());
         ///////////////////////////
 
@@ -166,10 +161,10 @@ public class MainActivity extends AppCompatActivity
 
     /**
      * Async request get user fb pic.
-     *
+     *  Needs to save user pic on iternal drive
      * @param iv
      */
-    private void getUserPic(ImageView iv, String url) {
+    private void fetchUserPic(ImageView iv, String url) {
         new DownLoadImageTask(this.getApplicationContext(), iv).execute(url);
     }
 
@@ -222,9 +217,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     /**
+     * This method acts as the conductor of child fragments to display in MainActivity.
      * Switch on id from the menu option method to display a new functionality (fragment) on mainActivity screen.
      *
-     * @param id
+     * @param id the id associated with the res/layout to display in MainActivity main content view
      * @return
      */
     public void displayFragmentScreen(int id) {
@@ -239,19 +235,21 @@ public class MainActivity extends AppCompatActivity
                 }
                 break;
             case R.id.band_user_frag_menu_item:
-                frag = bandUserPage();
+                frag = bandUserPageFragment();
                 break;
         }
         if (frag != null) {
             FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-            ft.replace(R.id.main_layout, frag);
+            ft.replace(R.id.main_layout, frag);//replaces default content view with user selection
             ft.commit();
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
     }
 
-
+    /**
+     * Sign out on all Authentication API's and tell user when completed.
+     */
     private void logOut() {
         LoginManager.getInstance().logOut();
         FirebaseAuth.getInstance().signOut();
@@ -281,7 +279,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
-        requestUserLocation();
+        requestUserLocation();//check if permissions for location is enabled
     }
 
     @Override
@@ -299,14 +297,22 @@ public class MainActivity extends AppCompatActivity
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
     }
-    private void fetchPADOIUser(FBUser user, Location loc){
-        //mCurrentUser = new PADOIUser(user.getId(),loc);
+
+    /**
+     * Calls when user has location turned on and all FB info ready to interact with the app.
+     * @param user FB API user Model wrapper
+     * @param loc Android Location from google services
+     */
+    private void readyToStartApp(PadoiUser user, Location loc){
         displayFragmentScreen(R.id.trending_menu_item);
     }
-    //////////////////////////////////
+
+    /**
+     *
+     * @return The top most fragment on stack.
+     */
     public Fragment getCurrentFragmentVisible() {
         List<Fragment> allFragments = getSupportFragmentManager().getFragments();
-        //Log.d("LIST:::::",allFragments+"");
         if (allFragments == null || allFragments.isEmpty()) {
             return null;
         }
@@ -317,7 +323,7 @@ public class MainActivity extends AppCompatActivity
     public Fragment trendingFragment() {
         TrendingFragment trend = new TrendingFragment();
         trend.setLocation(mGpsLocation);
-        trend.setUser(mFbUser);
+        trend.setUser(mCurrentUser);
         return  trend;
     }
 
@@ -325,7 +331,6 @@ public class MainActivity extends AppCompatActivity
     public Fragment mapViewFragment() {
         MapViewFragment map = new MapViewFragment();
         TrendingFragment t = (TrendingFragment) getCurrentFragmentVisible();
-        //Log.d("TREEEEEEEEEE",(t==null)+"......"+t+".....data:: "+t.getBandList());
         if(t!=null){
             map.setBandList(t.getBandList());
         }
@@ -334,7 +339,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public Fragment bandUserPage() {
+    public Fragment bandUserPageFragment() {
         BandUserPageFragment bandUserPageFragment = new BandUserPageFragment();
         return  bandUserPageFragment;
     }
@@ -358,11 +363,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
-        //Log.d("HERRRRRR: ","HERRRR: REQUEST: "+resultCode +" .. "+requestCode);
         // Check if result comes from the correct activity
         if (requestCode == REQUEST_CODE) {
             final AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
-          //  Log.d("SPOTIFY TAG:::::","TOKEN:: "+response.getAccessToken()+" .... "+response+" ...CODE..."+response.getCode());
             switch (response.getType()) {
                 // Response was successful and contains auth token
                 case TOKEN:
@@ -371,13 +374,11 @@ public class MainActivity extends AppCompatActivity
                     frag.spotifyAccessTokenVerified(response);
                     // Handle successful response
                     break;
-
                 // Auth flow returned an error
                 case ERROR:
                     Toast.makeText(this,"Spotify error. :(",Toast.LENGTH_LONG).show();
                     // Handle error response
                     break;
-
                 // Most likely auth flow was cancelled
                 default:
                     // Handle other cases

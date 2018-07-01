@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ai.portfolio.dev.project.app.com.padoi.Models.BandUser;
-import ai.portfolio.dev.project.app.com.padoi.Models.PADOIUser;
+import ai.portfolio.dev.project.app.com.padoi.Models.PadoiUser;
 import ai.portfolio.dev.project.app.com.padoi.R;
 import ai.portfolio.dev.project.app.com.padoi.RecycleViewAdpaters.BandAdapterRV;
 
@@ -26,8 +26,8 @@ import ai.portfolio.dev.project.app.com.padoi.RecycleViewAdpaters.BandAdapterRV;
 public class LiveBandTask extends AsyncTask<String,Void,String> {
     private Context context;
     private RecyclerView rv;
-    private PADOIUser user;
-    public LiveBandTask(PADOIUser user, Context context, RecyclerView rv){
+    private PadoiUser user;
+    public LiveBandTask(PadoiUser user, Context context, RecyclerView rv){
         this.rv = rv;
         this.context = context;
         this.user = user;

@@ -8,7 +8,7 @@ import android.net.Uri;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
 
-import ai.portfolio.dev.project.app.com.padoi.Models.FBUser;
+import ai.portfolio.dev.project.app.com.padoi.Models.PadoiUser;
 import ai.portfolio.dev.project.app.com.padoi.R;
 
 /**
@@ -18,7 +18,7 @@ import ai.portfolio.dev.project.app.com.padoi.R;
 public class Notify {
     private Context context;
     private String msg;
-    private FBUser user;
+    private PadoiUser user;
   // private Vibrator vibrator;
     private  NotificationCompat.Builder builder;
     private final String CHANNEL_ID=Notify.class.toString();
@@ -52,8 +52,8 @@ public class Notify {
      * @param user
      * @return
      */
-    public Notify fromUser(FBUser user){
-        this.builder.setContentTitle("New Message from "+user.getFull_name());
+    public Notify fromUser(PadoiUser user){
+        this.builder.setContentTitle("New Message from "+user.getName());
         return this;
     }
 

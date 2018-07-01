@@ -17,7 +17,7 @@ import java.util.List;
 
 import ai.portfolio.dev.project.app.com.padoi.AsyncTasks.DownLoadImageTask;
 import ai.portfolio.dev.project.app.com.padoi.Models.BandUser;
-import ai.portfolio.dev.project.app.com.padoi.Models.PADOIUser;
+import ai.portfolio.dev.project.app.com.padoi.Models.PadoiUser;
 import ai.portfolio.dev.project.app.com.padoi.R;
 import ai.portfolio.dev.project.app.com.padoi.Utils.PADOI;
 
@@ -32,9 +32,9 @@ public class BandAdapterRV extends RecyclerView.Adapter<BandAdapterRV.MyViewHold
     List<BandUser> horizontalList;
     Context context;
     int layout_id;
-    PADOIUser currUser;
+    PadoiUser currUser;
 
-    public BandAdapterRV(PADOIUser user, List<BandUser> horizontalList, Context context, int layout_id) {
+    public BandAdapterRV(PadoiUser user, List<BandUser> horizontalList, Context context, int layout_id) {
         this.horizontalList = horizontalList==null?new ArrayList<BandUser>():horizontalList;
         this.context = context;
         this.layout_id = layout_id;

@@ -10,5 +10,5 @@ import android.support.v4.app.Fragment;
 public interface IPADOIFragments {
     Fragment trendingFragment();
     Fragment mapViewFragment();
-    Fragment bandUserPage();
+    Fragment bandUserPageFragment();
 }

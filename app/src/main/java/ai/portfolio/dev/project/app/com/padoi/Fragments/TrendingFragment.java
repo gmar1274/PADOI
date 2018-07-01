@@ -19,8 +19,7 @@ import java.util.List;
 
 import ai.portfolio.dev.project.app.com.padoi.AsyncTaskLoaders.BandUsersLoader;
 import ai.portfolio.dev.project.app.com.padoi.Models.BandUser;
-import ai.portfolio.dev.project.app.com.padoi.Models.FBUser;
-import ai.portfolio.dev.project.app.com.padoi.Models.PADOIUser;
+import ai.portfolio.dev.project.app.com.padoi.Models.PadoiUser;
 import ai.portfolio.dev.project.app.com.padoi.R;
 import ai.portfolio.dev.project.app.com.padoi.RecycleViewAdpaters.BandAdapterRV;
 
@@ -42,21 +41,17 @@ public class TrendingFragment extends Fragment {
     private String mParam1;
     private String mParam2;
     private Location userLoc;
-    private FBUser fbUser;
+    private PadoiUser mUser;
     //private BandUserAdapter adapter;
 
 
     private OnFragmentInteractionListener mListener;
     private BandAdapterRV adapter;
-    private PADOIUser padoiUser;
 
-    public TrendingFragment() {
-        //
-    }
+    public TrendingFragment() {}
 
-    public Fragment setUser(FBUser user) {
-        this.fbUser = user;
-        padoiUser = new PADOIUser(fbUser.getId(),userLoc);
+    public Fragment setUser(PadoiUser user) {
+        this.mUser = user;
         return this;
     }
     public Fragment setLocation(Location loc){
@@ -101,7 +96,7 @@ public class TrendingFragment extends Fragment {
         final ProgressBar pb = (ProgressBar) rootView.findViewById(R.id.trendingProgressBar);
 
         RecyclerView rv = (RecyclerView) rootView.findViewById(R.id.recycle_view_BANDS);
-        adapter = new BandAdapterRV(padoiUser,null, this.getContext(), R.layout.trending_layout);
+        adapter = new BandAdapterRV(mUser,null, this.getContext(), R.layout.trending_layout);
         LinearLayoutManager horizontalLayoutManager = new LinearLayoutManager(this.getContext(), LinearLayoutManager.HORIZONTAL, false);
         rv.setLayoutManager(horizontalLayoutManager);
         rv.setAdapter(adapter);

@@ -5,22 +5,30 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.firebase.geofire.GeoFire;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import ai.portfolio.dev.project.app.com.padoi.AsyncTaskLoaders.LiveBandNearbyLoader;
+import ai.portfolio.dev.project.app.com.padoi.Interfaces.IMyAPI;
 import ai.portfolio.dev.project.app.com.padoi.Models.BandUser;
 import ai.portfolio.dev.project.app.com.padoi.R;
+import ai.portfolio.dev.project.app.com.padoi.Utils.PADOI;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -30,7 +38,7 @@ import ai.portfolio.dev.project.app.com.padoi.R;
  * Use the {@link MapViewFragment#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class MapViewFragment extends Fragment implements OnMapReadyCallback {
+public class MapViewFragment extends Fragment implements OnMapReadyCallback, IMyAPI {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
@@ -41,8 +49,11 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback {
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
-    private Location userLoc;
+    private Location mUserLoc;
     private List<BandUser> bandList;
+    private LiveBandNearbyLoader mAdapter;
+    private int mOffest;//API offset
+
     public MapViewFragment() {
         // Required empty public constructor
     }
@@ -84,6 +95,8 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback {
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
+        //currently no view to attach the datasource to ....
+        mAdapter = new LiveBandNearbyLoader(this.getContext(), mUserLoc);
         return view;
     }
 
@@ -115,11 +128,11 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback {
             // Add a marker in Sydney, Australia,
             // and move the map's camera to the same location.
             LatLng defualt = new LatLng(-33.852, 151.211);
-            if(userLoc!=null)defualt = new LatLng(userLoc.getLatitude(),userLoc.getLongitude());
+            if(mUserLoc !=null)defualt = new LatLng(mUserLoc.getLatitude(), mUserLoc.getLongitude());
             googleMap.addMarker(new MarkerOptions().position(defualt)
                     .title("Me").alpha(.5f));
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defualt,15));//15 is street view and 20 is buildings
-
+            // need to apply a API request here to fetch live entertainment. needs a limit
            DEBUG(googleMap, bandList);
 
     }
@@ -127,10 +140,39 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback {
     private void DEBUG(GoogleMap googleMap, List<BandUser> bandList) {
         for(BandUser b : bandList){
             BandUser band =b;
-            band.getNearDistDEBUG(userLoc);
+            band.getNearDistDEBUG(mUserLoc);
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference(PADOI.DBPATH_BAND_USERS);//query bandusers
+            GeoFire geoFire = new GeoFire(ref);
             googleMap.addMarker(new MarkerOptions().position(new LatLng(band.getLocation().getLatitude(),band.getLocation().getLongitude())).title(band.getName()));
         }
     }
+
+    /**
+     * Will fetch from firebase a list of Live bands near user Location
+     *
+     * @param userLoc user geolocation
+     * @return
+     */
+    @Override
+    public LoaderManager.LoaderCallbacks<List<BandUser>> getNearbyLiveEvents(final Location userLoc) {
+        return new LoaderManager.LoaderCallbacks<List<BandUser>>() {
+            @Override
+            public Loader<List<BandUser>> onCreateLoader(int id, Bundle args) {
+                return new LiveBandNearbyLoader(MapViewFragment.this.getContext(),userLoc);
+            }
+
+            @Override
+            public void onLoadFinished(Loader<List<BandUser>> loader, List<BandUser> data) {
+                mAdapter.swap(data);
+            }
+
+            @Override
+            public void onLoaderReset(Loader<List<BandUser>> loader) {
+                mAdapter.empty();
+            }
+        };
+    }
+
 
     /**
      * This interface must be implemented by activities that contain this
@@ -152,7 +194,7 @@ public class MapViewFragment extends Fragment implements OnMapReadyCallback {
      * @param userLocation
      */
     public Fragment setLocation(Location userLocation){
-        this.userLoc = userLocation;
+        this.mUserLoc = userLocation;
         return this;
     }
     public Fragment setBandList(List<BandUser> list){

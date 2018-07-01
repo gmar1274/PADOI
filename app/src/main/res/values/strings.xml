@@ -107,4 +107,7 @@
     <string name="settings_link_bandprofile">Link Artist Profile</string>
     <string name="SPOTIFYAPI">SpotifyAPIRequest</string>
     <string name="verify_description">Are you an Artist? Verify your account here to be featured on this app and grow your fanbase!</string>
+
+    <string name="button_locate">View on map</string>
+    <string name="PadoiUserLoader">PadoiUserLoader</string>
 </resources>

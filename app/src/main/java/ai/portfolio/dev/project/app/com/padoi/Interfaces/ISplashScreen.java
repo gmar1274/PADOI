@@ -1,12 +1,16 @@
 package ai.portfolio.dev.project.app.com.padoi.Interfaces;
 
-import com.google.firebase.auth.FirebaseUser;
+import android.animation.ObjectAnimator;
+import android.widget.ImageView;
+
+import ai.portfolio.dev.project.app.com.padoi.Models.PadoiUser;
 
 /**
- * Created by gabe on 3/13/2018.
+ * This interface provides a control structure for a splash screen
  */
 
 public interface ISplashScreen {
-    void continueToApp(FirebaseUser prof);
+    void continueToApp(PadoiUser prof);
     void login();
+    ObjectAnimator animateSplash(ImageView iv);
 }
