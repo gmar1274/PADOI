@@ -1,37 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="ai.portfolio.dev.project.app.com.padoi">
+    package="quants.portfolio.dev.project.app.com.padoi_v2">
 
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="com.google.android.gms.permission.ACTIVITY_RECOGNITION" />
-    <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <provider
-            android:name="com.facebook.FacebookContentProvider"
-            android:authorities="com.facebook.app.FacebookContentProvider168783553690670"
-            android:exported="true" />
+        android:theme="@style/AppThemeNoActionBar">
 
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="@string/google_maps_api_key" />
+        <!--
+     You don't need to include android:required="false" if your app's
+     minSdkVersion is 28 or higher.
+        -->
+        <uses-library
+            android:name="android.test.runner"
+            android:required="false" />
+        <!--
+             For both of these declarations, you don't need to include
+             android:required="false" if your app's minSdkVersion is 28
+             or higher.
+        -->
+        <uses-library
+            android:name="android.test.base"
+            android:required="false" />
+        <uses-library
+            android:name="android.test.mock"
+            android:required="false" />
+
+        <activity android:name=".Activites.Activities.LoginActivity" />
+        <activity
+            android:name=".Activites.Activities.LoginAPIActivity"
+            android:label="@string/app_name" />
+
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
             android:value="@string/facebook_app_id" />
-        <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
-
-        <service android:name=".AsyncTasks.GPSTrackerTask" />
 
         <activity
             android:name="com.facebook.FacebookActivity"
@@ -50,23 +56,8 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Activities.LoginActivity"
-            android:label=""
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".Activities.MainActivity"
-            android:label=""
-            android:theme="@style/AppTheme.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-        <activity
-            android:name=".Activities.SplashScreenActivity"
-            android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:name=".Activites.Activities.SplashScreen"
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -74,27 +65,17 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Activities.SettingsActivity"
+            android:name=".Activites.Activities.SettingsActivity"
             android:label="@string/title_activity_settings" />
         <activity
-            android:name="com.spotify.sdk.android.authentication.AuthCallbackActivity"
-            android:exported="true"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar">
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
+            android:name=".Activites.Activities.MainActivity"
+            android:label="@string/title_activity_main" />
+        <activity android:name=".Activites.Activities.EventActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppThemeActionBar"
+            >
 
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-
-                <data
-                    android:host="@string/com_spotify_sdk_redirect_host"
-                    android:scheme="@string/com_spotify_sdk_redirect_scheme" />
-            </intent-filter>
         </activity>
-        <activity
-            android:name="com.spotify.sdk.android.authentication.LoginActivity"
-            android:launchMode="singleInstance"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar"></activity>
     </application>
 
 </manifest>

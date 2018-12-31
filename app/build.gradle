@@ -1,19 +1,14 @@
 apply plugin: 'com.android.application'
+
 android {
-    configurations.all {
-        resolutionStrategy.force 'com.android.support:support-annotations:23.0.1'
-    }
-}
-android {
-    compileSdkVersion 26
+    compileSdkVersion 28
     defaultConfig {
-        applicationId "ai.portfolio.dev.project.app.com.padoi"
-        minSdkVersion 18
-        targetSdkVersion 26
+        applicationId "quants.portfolio.dev.project.app.com.padoi_v2"
+        minSdkVersion 21
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
         release {
@@ -21,60 +16,56 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
-    sourceSets { main { assets.srcDirs = ['src/main/assets', 'src/main/assets/'] } }
+    // Gradle automatically adds 'android.test.runner' as a dependency.
+    useLibrary 'android.test.runner'
+    useLibrary 'android.test.base'
+    useLibrary 'android.test.mock'
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:recyclerview-v7:26.1.0'
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:26.1.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
-    implementation 'com.android.support:design:26.1.0'
-    implementation 'com.android.support:support-v4:26.1.0'
-    implementation 'com.android.support:support-vector-drawable:26.1.0'
+    // Core library
+    androidTestImplementation 'androidx.test:core:1.0.0'
 
-// Required -- JUnit 4 framework
-    implementation 'com.google.firebase:firebase-database:16.0.1'
-    implementation 'com.google.firebase:firebase-auth:16.0.2'
-    implementation 'com.google.firebase:firebase-core:16.0.1'
+    // AndroidJUnitRunner and JUnit Rules
+    androidTestImplementation 'androidx.test:runner:1.1.0'
+    androidTestImplementation 'androidx.test:rules:1.1.0'
 
+    // Assertions
+    androidTestImplementation 'androidx.test.ext:junit:1.0.0'
+    androidTestImplementation 'androidx.test.ext:truth:1.0.0'
+    androidTestImplementation 'com.google.truth:truth:0.42'
+
+    // Espresso dependencies
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.1.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-intents:3.1.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-accessibility:3.1.0'
+    androidTestImplementation 'androidx.test.espresso:espresso-web:3.1.0'
+    androidTestImplementation 'androidx.test.espresso.idling:idling-concurrent:3.1.0'
+
+    // The following Espresso dependency can be either "implementation"
+    // or "androidTestImplementation", depending on whether you want the
+    // dependency to appear on your APK's compile classpath or the test APK
+    // classpath.
+    androidTestImplementation 'androidx.test.espresso:espresso-idling-resource:3.1.0'
+    /////////////
+    // Required -- JUnit 4 framework
     testImplementation 'junit:junit:4.12'
+    // Optional -- Robolectric environment
+    testImplementation 'androidx.test:core:1.0.0'
     // Optional -- Mockito framework
-    testImplementation "org.mockito:mockito-core:2.+"
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
-    implementation 'com.facebook.android:facebook-login:[4,5)'
-    implementation 'com.mashape.unirest:unirest-android:1.0+'
-    implementation 'com.google.code.gson:gson:2.8.2'
-    implementation 'com.android.support:mediarouter-v7:26.1.0'
-
-    // This library handles authentication and authorization
-    implementation 'com.spotify.android:auth:1.0.0-alpha'
-    // This library handles music playback
-    //compile 'com.spotify.sdk:spotify-player-24-noconnect-2.20b@aar'
+    testImplementation 'org.mockito:mockito-core:1.10.19'
 
 
-    implementation "com.google.android.gms:play-services-base:+"
-    implementation 'com.google.android.gms:play-services-location:+'
-    implementation 'com.google.android.gms:play-services-maps:+'
-    implementation 'com.android.volley:volley:1.1.0'
-
-
-    androidTestImplementation 'com.android.support:support-annotations:27.1.1'
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support:design:28.0.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    implementation 'com.android.support:support-v13:28.0.0'
+    implementation 'com.android.support:support-v4:28.0.0'
+    testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test:rules:1.0.2'
-    // Optional -- Hamcrest library
-    androidTestImplementation 'org.hamcrest:hamcrest-library:1.3'
-    // Optional -- UI testing with Espresso
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-    // Optional -- UI testing with UI Automator
-    androidTestImplementation 'com.android.support.test.uiautomator:uiautomator-v18:2.1.3'
+    implementation 'com.facebook.android:facebook-login:[4,5)'
+    implementation 'com.android.support:gridlayout-v7:28.0.0'
 
-
-    implementation 'com.firebase:geofire-android:2.3.1'
 }
-
-
-
-apply plugin: 'com.google.gms.google-services'
