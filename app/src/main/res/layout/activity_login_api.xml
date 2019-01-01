@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Activites.Activities.LoginAPIActivity">
+    tools:context=".Project.Activities.LoginAPIActivity">
 
 
     <ImageView
@@ -15,7 +15,7 @@
         android:adjustViewBounds="true"
         android:cropToPadding="false"
         android:scaleType="centerCrop"
-        app:srcCompat="@drawable/pexels1" />
+        app:srcCompat="@drawable/pexels" />
 
     <com.facebook.login.widget.LoginButton
         android:id="@+id/login_button"
