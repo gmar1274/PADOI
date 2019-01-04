@@ -6,9 +6,11 @@
         <item name="android:windowContentTransitions">true</item>
         <!-- specify shared element transitions -->
         <item name="android:windowSharedElementEnterTransition">
-            @transition/explode</item>
+            @transition/explode
+        </item>
         <item name="android:windowSharedElementExitTransition">
-            @transition/explode</item>
+            @transition/explode
+        </item>
 
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimary</item>
@@ -19,22 +21,50 @@
         <item name="android:windowEnterTransition">@transition/explode</item>
         <item name="android:windowExitTransition">@transition/explode</item>
     </style>
-<style name="AppThemeNoActionBar" parent="Theme.Design.NoActionBar">
-    <!--<item name="android:windowAllowEnterTransitionOverlap">true</item>
+
+    <style name="AppThemeNoActionBar" parent="Theme.Design.NoActionBar">
+        <!--<item name="android:windowAllowEnterTransitionOverlap">true</item>
     <item name="android:windowAllowReturnTransitionOverlap">true</item>
     -->
-    <!-- enable views to be shared and animated between activites-->
-    <item name="android:windowContentTransitions">true</item>
-    <item name="colorPrimary">@color/colorPrimary</item>
-    <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
-    <item name="colorAccent">@color/colorAccent</item>
-    <item name="android:colorBackground">@color/ActivityBackground</item>
-    <item name="android:textColor">@color/colorPrimaryDark</item>
-    <!-- enable window content transitions -->
-    <item name="android:windowActivityTransitions">true</item>
-    <!-- specify enter and exit transitions -->
-    <item name="android:windowEnterTransition">@transition/slide</item>
-    <item name="android:windowExitTransition">@transition/explode</item>
-</style>
+        <!-- enable views to be shared and animated between activites-->
+        <item name="android:windowContentTransitions">true</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:colorBackground">@color/ActivityBackground</item>
+        <item name="android:textColor">@color/colorPrimaryDark</item>
+        <!-- enable window content transitions -->
+        <item name="android:windowActivityTransitions">true</item>
+        <!-- specify enter and exit transitions -->
+        <item name="android:windowEnterTransition">@transition/slide</item>
+        <item name="android:windowExitTransition">@transition/explode</item>
+    </style>
+
+    <style name="AppThemeFullscreen" parent="Theme.Design.NoActionBar">
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowContentTransitions">true</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:colorBackground">@color/ActivityBackground</item>
+        <item name="android:textColor">@color/colorPrimaryDark</item>
+        <!-- enable window content transitions -->
+        <item name="android:windowActivityTransitions">true</item>
+        <!-- specify enter and exit transitions -->
+        <item name="android:windowEnterTransition">@transition/slide</item>
+        <item name="android:windowExitTransition">@transition/explode</item>
+    </style>
+
+    <style name="FullscreenTheme" parent="AppThemeNoActionBar">
+        <item name="android:actionBarStyle">@style/FullscreenActionBarStyle</item>
+        <item name="android:windowActionBarOverlay">true</item>
+        <item name="android:windowBackground">@null</item>
+        <item name="metaButtonBarStyle">?android:attr/buttonBarStyle</item>
+        <item name="metaButtonBarButtonStyle">?android:attr/buttonBarButtonStyle</item>
+    </style>
+
+    <style name="FullscreenActionBarStyle" parent="android:Widget.Holo.ActionBar">
+        <item name="android:background">@color/black_overlay</item>
+    </style>
 
 </resources>

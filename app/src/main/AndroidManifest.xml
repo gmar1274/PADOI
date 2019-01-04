@@ -67,12 +67,11 @@
         <activity
             android:name=".Project.Activities.MainActivity"
             android:label="@string/title_activity_main" />
-        <activity android:name=".Project.Activities.EventActivity"
-            android:label="@string/app_name"
-            android:theme="@style/AppThemeActionBar"
-            >
-
-        </activity>
+        <activity
+            android:name=".Project.Activities.FullscreenActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize"
+            android:label="@string/title_activity_fullscreen"
+            android:theme="@style/FullscreenTheme"></activity>
     </application>
 
 </manifest>

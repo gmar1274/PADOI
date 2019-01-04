@@ -6,4 +6,7 @@
     <color name="colorAccent">#fffbd0</color>
     <color name="ActivityBackground">#f7f7f7</color>
     <color name="ToolbarBackground">#ffffff</color>
+
+    <color name="black_overlay">#66000000</color>
+    <color name="toolbar_invisible">#000000</color>
 </resources>

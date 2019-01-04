@@ -14,14 +14,16 @@ import android.widget.VideoView;
 import java.util.ArrayList;
 
 import quants.portfolio.dev.project.app.com.padoi_v2.Project.Models.Event;
+import quants.portfolio.dev.project.app.com.padoi_v2.Project.Utils.Utils;
 import quants.portfolio.dev.project.app.com.padoi_v2.R;
 
 
 public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventsViewHolder> {
-    private String TAG="ADAPTER";
+    private String TAG=EventsAdapter.class.getCanonicalName();
     private ArrayList<Event> mDataset;
     private OnItemClickListener listener;
     private Context context;
+    //private int last_postition=-1;
     public interface OnItemClickListener {
         void onItemClick(Pair[] pair,Event item);
         void onItemLongClick(Event item);
@@ -47,8 +49,10 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventsView
         Event event = mDataset.get(pos);
         eventsViewHolder.bind(event, listener);
         // Get the data model based on position
-        eventsViewHolder.tv.setText(event.getName());
+        eventsViewHolder.tv.setText(event.getVideo_url());
+        eventsViewHolder.animate(pos);
         VideoView videoView = eventsViewHolder.videoView;
+        Utils.prepareVideo(context,videoView,event);
     }
 
     @Override
@@ -88,8 +92,19 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventsView
         }
 
         private Pair[] getPair() {
-            Pair[] p = new Pair[]{Pair.<View, String>create(tv,tv.getTransitionName())};
+            Pair[] p = new Pair[]{Pair.<View, String>create(tv,tv.getTransitionName()), Pair.create(videoView,videoView.getTransitionName())};
             return p;
+        }
+
+        /**
+         * We will animate this view when it appears on the screen.
+         * @param pos
+         */
+        public void animate(int pos) {
+            /**if(pos > last_postition){//if havent animated
+                cardView.animate().setInterpolator(new AnticipateOvershootInterpolator()).setDuration(1000).rotation(360).start();
+                last_postition = pos;
+            }*/
         }
     }
 
