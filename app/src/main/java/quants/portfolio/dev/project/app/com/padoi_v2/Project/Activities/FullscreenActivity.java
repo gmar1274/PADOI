@@ -2,6 +2,8 @@ package quants.portfolio.dev.project.app.com.padoi_v2.Project.Activities;
 
 import android.annotation.SuppressLint;
 import android.app.ActionBar;
+import android.app.ActivityOptions;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
@@ -9,6 +11,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.VideoView;
 
@@ -88,7 +91,7 @@ public class FullscreenActivity extends AppCompatActivity {
 
     }
 
-    private void initViews(Event event) {
+    private void initViews(final Event event) {
         TextView tv = findViewById(R.id.textView);
         tv.setText(event.getId());
         mVisible = true;
@@ -99,7 +102,20 @@ public class FullscreenActivity extends AppCompatActivity {
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         VideoView videoView = findViewById(R.id.videoView);
-        Utils.prepareVideo(this,videoView,event);
+        videoView = Utils.prepareVideo(this,videoView,event);
+        FrameLayout frameLayout =findViewById(R.id.frame_layout);
+        frameLayout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                displayOverscreenPopup(event);
+            }
+        });
+    }
+
+    private void displayOverscreenPopup(Event event) {
+        Intent intent = new Intent(this,EventDescriptionActivity.class);
+        ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this);
+        startActivity(intent,options.toBundle());
     }
 
     // Set up the user interaction to manually show or hide the system UI.

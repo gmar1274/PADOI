@@ -4,7 +4,6 @@ import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.util.Log;
-import android.view.View;
 import android.widget.MediaController;
 import android.widget.Toast;
 import android.widget.VideoView;
@@ -22,7 +21,7 @@ public class Utils {
     /**
      * Lets load the video thumbnail.
      */
-    public static void prepareVideo(Context context, final VideoView videoView, Event event) {
+    public static VideoView prepareVideo(Context context, final VideoView videoView, Event event) {
         try {
             final MediaController mediaController = new MediaController(context);
             mediaController.setAnchorView(videoView);
@@ -32,23 +31,13 @@ public class Utils {
             videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
                 @Override
                 public void onPrepared(MediaPlayer mp) {
-                    mp.setLooping(true);
-                    mp.start();
-                }
-            });
-            videoView.requestFocus();
-            videoView.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if(hasFocus){
-                        videoView.start();
-                    }else {
-                        videoView.stopPlayback();
-                    }
+                        mp.setLooping(true);
+                        mp.start();
                 }
             });
         }catch (Exception e){
             e.printStackTrace();
         }
+        return videoView;
     }
 }

@@ -52,7 +52,12 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventsView
         eventsViewHolder.tv.setText(event.getVideo_url());
         eventsViewHolder.animate(pos);
         VideoView videoView = eventsViewHolder.videoView;
-        Utils.prepareVideo(context,videoView,event);
+        videoView = Utils.prepareVideo(context,videoView,event);
+
+    }
+    @Override
+    public void onViewDetachedFromWindow(EventsViewHolder viewHolder){
+        //viewHolder.videoView.ca
     }
 
     @Override

@@ -71,7 +71,12 @@
             android:name=".Project.Activities.FullscreenActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen"
-            android:theme="@style/FullscreenTheme"></activity>
+            android:theme="@style/FullscreenTheme" />
+
+        <activity
+            android:name=".Project.Activities.EventDescriptionActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen"
+            android:label="@string/title_activity_event_description"></activity>
     </application>
 
 </manifest>

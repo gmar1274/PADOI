@@ -2,6 +2,8 @@
 
     <!-- Base application theme. -->
     <style name="AppThemeActionBar" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="android:windowTitleBackgroundStyle">@style/WindowTitleBackground</item>
+        <item name="android:textAppearance">@style/TitleTextColor</item>
         <!-- Customize your theme here. -->
         <item name="android:windowContentTransitions">true</item>
         <!-- specify shared element transitions -->
@@ -23,9 +25,6 @@
     </style>
 
     <style name="AppThemeNoActionBar" parent="Theme.Design.NoActionBar">
-        <!--<item name="android:windowAllowEnterTransitionOverlap">true</item>
-    <item name="android:windowAllowReturnTransitionOverlap">true</item>
-    -->
         <!-- enable views to be shared and animated between activites-->
         <item name="android:windowContentTransitions">true</item>
         <item name="colorPrimary">@color/colorPrimary</item>
@@ -38,10 +37,12 @@
         <!-- specify enter and exit transitions -->
         <item name="android:windowEnterTransition">@transition/slide</item>
         <item name="android:windowExitTransition">@transition/explode</item>
+        <item name="android:windowBackground">@color/titlebar_color</item>
     </style>
 
     <style name="AppThemeFullscreen" parent="Theme.Design.NoActionBar">
         <item name="windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
         <item name="android:windowContentTransitions">true</item>
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -56,6 +57,14 @@
     </style>
 
     <style name="FullscreenTheme" parent="AppThemeNoActionBar">
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentTransitions">true</item>
+        <!-- enable window content transitions -->
+        <item name="android:windowActivityTransitions">true</item>
+        <!-- specify enter and exit transitions -->
+        <item name="android:windowEnterTransition">@transition/slide_up</item>
+        <item name="android:windowExitTransition">@transition/slide_up</item>
         <item name="android:actionBarStyle">@style/FullscreenActionBarStyle</item>
         <item name="android:windowActionBarOverlay">true</item>
         <item name="android:windowBackground">@null</item>
@@ -66,5 +75,4 @@
     <style name="FullscreenActionBarStyle" parent="android:Widget.Holo.ActionBar">
         <item name="android:background">@color/black_overlay</item>
     </style>
-
 </resources>
