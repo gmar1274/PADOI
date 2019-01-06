@@ -99,5 +99,6 @@
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="title_activity_event_description">EventDescriptionActivity</string>
+    <string name="event_details">Event Details</string>
 
 </resources>

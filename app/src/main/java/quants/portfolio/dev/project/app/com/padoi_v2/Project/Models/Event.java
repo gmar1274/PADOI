@@ -69,6 +69,10 @@ public class Event implements Parcelable {
         dest.writeString(id);
         dest.writeString(video_url);
     }
+    @Override
+    public String toString(){
+        return video_url;
+    }
 
 
 }

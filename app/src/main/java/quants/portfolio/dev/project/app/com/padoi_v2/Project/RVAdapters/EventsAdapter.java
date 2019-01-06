@@ -1,6 +1,7 @@
 package quants.portfolio.dev.project.app.com.padoi_v2.Project.RVAdapters;
 
 import android.content.Context;
+import android.media.MediaPlayer;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
@@ -8,6 +9,7 @@ import android.util.Pair;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.VideoView;
 
@@ -34,6 +36,9 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventsView
         mDataset = events;
         this.listener = listener;
     }
+    public ArrayList<Event> getList(){
+        return this.mDataset;
+    }
     @Override
     public EventsViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         Context context = viewGroup.getContext();
@@ -52,12 +57,32 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventsView
         eventsViewHolder.tv.setText(event.getVideo_url());
         eventsViewHolder.animate(pos);
         VideoView videoView = eventsViewHolder.videoView;
+        final ProgressBar progressBar = eventsViewHolder.progressBar;
         videoView = Utils.prepareVideo(context,videoView,event);
+        videoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                mp.setVolume(0,0);//no sound
+                progressBar.setVisibility(View.GONE);
+                mp.start();
+            }
+        });
 
     }
     @Override
     public void onViewDetachedFromWindow(EventsViewHolder viewHolder){
-        //viewHolder.videoView.ca
+       VideoView videoView = viewHolder.videoView;
+       videoView.stopPlayback();
+    }
+    public void update(ArrayList<Event> list){
+        if (mDataset != null) {
+            mDataset.clear();
+            mDataset.addAll(list);
+        }
+        else {
+            mDataset = list;
+        }
+        notifyDataSetChanged();
     }
 
     @Override
@@ -69,11 +94,13 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventsView
         TextView tv ;
         VideoView videoView;
         CardView cardView;
+        ProgressBar progressBar;
         public EventsViewHolder(View view) {
             super(view);
             tv = view.findViewById(R.id.textView);
             videoView = view.findViewById(R.id.videoView);
             cardView = view.findViewById(R.id.card_view);
+            progressBar = view.findViewById(R.id.progressBar);
         }
 
         /**
@@ -112,44 +139,4 @@ public class EventsAdapter extends RecyclerView.Adapter<EventsAdapter.EventsView
             }*/
         }
     }
-
-    /**
-     * final VideoView videoview = eventsViewHolder.videoView;
-     *         String VideoURL = "http://clips.vorwaerts-gmbh.de/VfE_html5.mp4";
-     *         try {
-     *             // Start the MediaController
-     *             MediaController mediacontroller = new MediaController(context);
-     *             mediacontroller.setAnchorView(videoview);
-     *             // Get the URL from String VideoURL
-     *             Uri video = Uri.parse(VideoURL);
-     *             videoview.setMediaController(mediacontroller);
-     *             videoview.setVideoURI(video);
-     *             //videoview.requestFocus();
-     *             Log.e(TAG,"position: "+i);
-     *             videoview.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-     *                 @Override
-     *                 public void onFocusChange(View v, boolean hasFocus) {
-     *                     if (hasFocus){
-     *                         //videoview.start();
-     *                         Log.e(TAG,"HAS FOCUS!!! pos: "+i);
-     *                     }else{
-     *                         //videoview.stopPlayback();
-     *                         Log.e(TAG,"lost FOCUS... pos: "+i);
-     *                     }
-     *                 }
-     *             });
-     *             videoview.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-     *                 // Close the progress bar and play the video
-     *                 public void onPrepared(MediaPlayer mp) {
-     *                     //pDialog.dismiss();
-     *                     //mp.setLooping(true);
-     *                     //videoview.start();
-     *                 }
-     *             });
-     *         } catch (Exception e) {
-     *             Log.e("Error", e.getMessage());
-     *             e.printStackTrace();
-     *         }
-     *
-     */
 }

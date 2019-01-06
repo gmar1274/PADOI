@@ -3,6 +3,8 @@
     <targets>
         <target android:excludeId="@+id/toolbar"/>
         <target android:targetId="@+id/toolbar"/>
+        <target android:targetId="@+id/videoView"></target>
+        <target android:excludeId="@+id/videoView"></target>
     </targets>
     <explode android:duration="300">
     </explode>

@@ -4,17 +4,21 @@ import android.annotation.SuppressLint;
 import android.app.ActionBar;
 import android.app.ActivityOptions;
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.TextView;
-import android.widget.VideoView;
+import android.widget.ProgressBar;
 
+import java.util.ArrayList;
+
+import quants.portfolio.dev.project.app.com.padoi_v2.Project.EventStoriesPagerAdapter;
 import quants.portfolio.dev.project.app.com.padoi_v2.Project.Models.Event;
 import quants.portfolio.dev.project.app.com.padoi_v2.Project.Utils.Utils;
 import quants.portfolio.dev.project.app.com.padoi_v2.R;
@@ -24,6 +28,8 @@ import quants.portfolio.dev.project.app.com.padoi_v2.R;
  * status bar and navigation/system bar) with user interaction.
  */
 public class FullscreenActivity extends AppCompatActivity {
+    public static final String TAG=FullscreenActivity.class.getCanonicalName();
+    private ArrayList<Event> mTestData;
     /**
      * Whether or not the system UI should be auto-hidden after
      * {@link #AUTO_HIDE_DELAY_MILLIS} milliseconds.
@@ -81,19 +87,33 @@ public class FullscreenActivity extends AppCompatActivity {
     };
 
     private Toolbar mToolbar;
+    //private VideoView mVideoView;
+    private int mStopPosition;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fullscreen);
         Event event = getIntent().getParcelableExtra(Event.TAG);
+        mTestData = getIntent().getParcelableArrayListExtra(Event.TAG);
+        Utils.debugLog(this,TAG,mTestData.toString(),false);
         initViews(event);
 
     }
 
     private void initViews(final Event event) {
-        TextView tv = findViewById(R.id.textView);
-        tv.setText(event.getId());
+        final ViewPager viewPager = findViewById(R.id.viewpager);
+        viewPager.setAdapter(new EventStoriesPagerAdapter(this, mTestData, new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                viewPager.arrowScroll(View.FOCUS_RIGHT);
+            }
+        }));
+
+
+        final ProgressBar progressBar = findViewById(R.id.progressBar);
+        //TextView tv = findViewById(R.id.textView);
+        //tv.setText(event.getId());
         mVisible = true;
         // = findViewById(R.id.fullscreen_content_controls);
         mContentView = findViewById(R.id.fullscreen_content);
@@ -101,8 +121,23 @@ public class FullscreenActivity extends AppCompatActivity {
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(mToolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        VideoView videoView = findViewById(R.id.videoView);
-        videoView = Utils.prepareVideo(this,videoView,event);
+        /*mVideoView = findViewById(R.id.videoView);
+        mVideoView = Utils.prepareVideo(this, mVideoView,event);
+        mVideoView.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                progressBar.setVisibility(View.GONE);
+                mp.start();
+            }
+        });
+        mVideoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mp) {
+                onActionHomePressed();//exit activity
+            }
+        });*/
+
+        //////////////
         FrameLayout frameLayout =findViewById(R.id.frame_layout);
         frameLayout.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -113,7 +148,7 @@ public class FullscreenActivity extends AppCompatActivity {
     }
 
     private void displayOverscreenPopup(Event event) {
-        Intent intent = new Intent(this,EventDescriptionActivity.class);
+        Intent intent = new Intent(this,TransparentActivity.class);
         ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this);
         startActivity(intent,options.toBundle());
     }
@@ -150,7 +185,7 @@ public class FullscreenActivity extends AppCompatActivity {
             case R.id.action_settings:
                 return true;
             case android.R.id.home:
-                finish();
+                onActionHomePressed();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -189,4 +224,24 @@ public class FullscreenActivity extends AppCompatActivity {
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
+   private void onActionHomePressed(){
+        supportFinishAfterTransition();
+   }
+   @Override
+    public void onPause(){
+        super.onPause();
+        /*if(mVideoView!= null){
+            mVideoView.pause();
+            mStopPosition = mVideoView.getCurrentPosition(); //stopPosition is an int
+        }*/
+   }
+   @Override
+    public void onResume(){
+        super.onResume();
+        /*if(mVideoView != null){
+            mVideoView.seekTo(mStopPosition);
+            mVideoView.start();
+        }*/
+   }
+
 }

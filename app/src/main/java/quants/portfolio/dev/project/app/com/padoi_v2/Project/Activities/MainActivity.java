@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity implements IPadoiAPI {
     }
 
     private void initViews() {
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);//turns the status bar text to be read if background is light.
         setLoading(true);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -69,8 +70,9 @@ public class MainActivity extends AppCompatActivity implements IPadoiAPI {
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                setLoading(true);
                 Toast.makeText(MainActivity.this, "Refreshing...", Toast.LENGTH_SHORT).show();
-                mSwipeRefreshLayout.setRefreshing(false);
+                getVideosByCat("concert",10,1);
             }
         });
     }
@@ -106,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements IPadoiAPI {
         } else {//stop the animation
             mCardViewLoadingLayout.animate().cancel();
             mCardViewLoadingLayout.setVisibility(View.GONE);
+            mSwipeRefreshLayout.setRefreshing(false);
         }
     }
 
@@ -118,6 +121,8 @@ public class MainActivity extends AppCompatActivity implements IPadoiAPI {
         // Intent intent = new Intent(this,EventActivity.class);
         Intent intent = new Intent(this, FullscreenActivity.class);
         intent.putExtra(Event.TAG, event);
+        intent.putExtra(Event.TAG,mAdapter.getList());
+
         ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(this, pair);
         startActivity(intent, options.toBundle());
     }
@@ -130,6 +135,43 @@ public class MainActivity extends AppCompatActivity implements IPadoiAPI {
     @Override
     public void finish() {
         super.finish();
+    }
+
+    public void getVideosByCat(String cat, final int vid_num, int page_index) {
+
+        String url = "https://pixabay.com/api/videos/?key=11174422-52934996ee44e82c36908e956&q="+cat+"&per_page="+vid_num+"&page="+page_index;
+
+        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        //debugLog(response.toString());
+                        try {
+                            int hits = response.getInt("totalHits");
+                            JSONArray arr = response.getJSONArray("hits");
+                            ArrayList<Event> events = new ArrayList<>();
+                            for (int i = 0; i < vid_num; ++i) {
+                                String url = arr.getJSONObject(i).getJSONObject("videos").getJSONObject("tiny").getString("url");
+                                int id = arr.getJSONObject(i).getInt("id");
+                                events.add(new Event(url,String.valueOf(id)));
+                            }
+
+                            displayVideos(events);
+                        }catch (Exception e ){
+                            Utils.debugLog(MainActivity.this,TAG,"ERROR..."+e.getMessage(),true);
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        // TODO: Handle error
+                        error.printStackTrace();
+                    }
+                });
+        mRequestQueue.add(jsonObjectRequest);
     }
 
     /**
@@ -179,20 +221,24 @@ public class MainActivity extends AppCompatActivity implements IPadoiAPI {
 
     private void displayVideos(ArrayList<Event> events) {
         setLoading(false);
-        // specify an adapter (see also next example)
-        mAdapter = new EventsAdapter(this, events, new EventsAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(Pair[] pair, Event event) {
-                goToEventActivity(pair, event);
-            }
+        if(mAdapter == null) {
+            // specify an adapter (see also next example)
+            mAdapter = new EventsAdapter(this, events, new EventsAdapter.OnItemClickListener() {
+                @Override
+                public void onItemClick(Pair[] pair, Event event) {
+                    goToEventActivity(pair, event);
+                }
 
-            @Override
-            public void onItemLongClick(Event item) {
-                Toast.makeText(MainActivity.this, "On LONG Click: " + item.getId(), Toast.LENGTH_SHORT).show();
-                setLoading(false);
-            }
-        });
-        mRecyclerView.setAdapter(mAdapter);
+                @Override
+                public void onItemLongClick(Event item) {
+                    Toast.makeText(MainActivity.this, "On LONG Click: " + item.getId(), Toast.LENGTH_SHORT).show();
+                    setLoading(false);
+                }
+            });
+            mRecyclerView.setAdapter(mAdapter);
+        }else {
+            mAdapter.update(events);
+        }
     }
 
     private void initVolley() {

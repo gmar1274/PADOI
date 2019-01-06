@@ -57,7 +57,8 @@
         </activity>
         <activity
             android:name=".Project.Activities.SplashScreen"
-            android:label="@string/app_name">
+            android:label="@string/app_name"
+            android:theme="@style/AppThemeSplashScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -74,8 +75,8 @@
             android:theme="@style/FullscreenTheme" />
 
         <activity
-            android:name=".Project.Activities.EventDescriptionActivity"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen"
+            android:name=".Project.Activities.TransparentActivity"
+            android:theme="@style/AppThemeFullscreenTransparent"
             android:label="@string/title_activity_event_description"></activity>
     </application>
 

@@ -24,6 +24,11 @@ public class SplashScreen extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
+        initViews();
+    }
+
+    private void initViews() {
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);//turns the status bar text to be read if background is light.
         tv = findViewById(R.id.textView);
         CardView cv = findViewById(R.id.cardView);
         long duration = getResources().getInteger(R.integer.loading_duration);
@@ -57,6 +62,7 @@ public class SplashScreen extends AppCompatActivity {
             }
         }).start();
     }
+
     @Override
     public void onStop() {
         super.onStop();
