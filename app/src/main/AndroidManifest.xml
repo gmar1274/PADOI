@@ -3,6 +3,7 @@
     package="quants.portfolio.dev.project.app.com.padoi_v2">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -10,6 +11,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppThemeNoActionBar">
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_map_api_key"/>
 
         <!--
      You don't need to include android:required="false" if your app's
@@ -73,11 +77,11 @@
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_fullscreen"
             android:theme="@style/FullscreenTheme" />
-
         <activity
             android:name=".Project.Activities.TransparentActivity"
-            android:theme="@style/AppThemeFullscreenTransparent"
-            android:label="@string/title_activity_event_description"></activity>
+            android:label="@string/title_activity_event_description"
+            android:theme="@style/AppThemeFullscreenTransparent" />
+        <activity android:name=".Project.Activities.MapViewActivity"></activity>
     </application>
 
 </manifest>

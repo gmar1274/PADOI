@@ -34,4 +34,8 @@ public class Utils {
         }
         return videoView;
     }
+
+    public static String getTag(Class aClass) {
+        return aClass.getCanonicalName();
+    }
 }

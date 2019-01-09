@@ -12,6 +12,7 @@ import android.support.v7.widget.Toolbar;
 import android.util.Pair;
 import android.view.View;
 import android.view.animation.AnticipateOvershootInterpolator;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.android.volley.Cache;
@@ -73,6 +74,14 @@ public class MainActivity extends AppCompatActivity implements IPadoiAPI {
                 setLoading(true);
                 Toast.makeText(MainActivity.this, "Refreshing...", Toast.LENGTH_SHORT).show();
                 getVideosByCat("concert",10,1);
+            }
+        });
+        ImageView imageViewMap = findViewById(R.id.imageViewMap);
+        imageViewMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this,MapViewActivity.class);
+                startActivity(intent);
             }
         });
     }
@@ -258,5 +267,11 @@ public class MainActivity extends AppCompatActivity implements IPadoiAPI {
 // Start the queue
         mRequestQueue.start();
 
+    }
+    @Override
+    public void onDestroy(){
+        if(mRequestQueue!=null)this.mRequestQueue.stop();
+        this.mRequestQueue=null;
+        super.onDestroy();
     }
 }
