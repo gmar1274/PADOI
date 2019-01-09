@@ -60,7 +60,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".Project.Activities.SplashScreen"
+            android:name=".Project.Activities.SplashScreenActivity"
             android:label="@string/app_name"
             android:theme="@style/AppThemeSplashScreen">
             <intent-filter>
