@@ -12,4 +12,5 @@
     <color name="toolbar_clear">#5577b4ff</color>
     <color name="titlebar_color">#ffffff</color>
     <color name="titlebar_text_color">#000000</color>
+    <color name="transparent">#00ffffff</color>
 </resources>

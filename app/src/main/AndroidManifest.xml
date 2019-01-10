@@ -13,7 +13,7 @@
         android:theme="@style/AppThemeNoActionBar">
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="@string/google_map_api_key"/>
+            android:value="@string/google_map_api_key" />
 
         <!--
      You don't need to include android:required="false" if your app's
@@ -81,7 +81,11 @@
             android:name=".Project.Activities.TransparentActivity"
             android:label="@string/title_activity_event_description"
             android:theme="@style/AppThemeFullscreenTransparent" />
-        <activity android:name=".Project.Activities.MapViewActivity"></activity>
+        <activity android:name=".Project.Activities.MapViewActivity" />
+        <activity android:name=".Project.Activities.SocialActivity"
+            android:theme="@style/AppThemeSocial"
+            >
+        </activity>
     </application>
 
 </manifest>

@@ -1,13 +1,13 @@
 package quants.portfolio.dev.project.app.com.padoi_v2.Project.Activities;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.widget.FrameLayout;
 
 import quants.portfolio.dev.project.app.com.padoi_v2.R;
 
-public class TransparentActivity extends AppCompatActivity {
+public class TransparentActivity extends SwipeDimissActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,6 +17,9 @@ public class TransparentActivity extends AppCompatActivity {
         this.setSupportActionBar(toolbar);
         this.getSupportActionBar().setHomeAsUpIndicator(android.R.drawable.ic_menu_close_clear_cancel);
         this.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        FrameLayout frameLayout = findViewById(R.id.frameLayout);
+        //this.setMySwipeDownAnimationDismissView(frameLayout);
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

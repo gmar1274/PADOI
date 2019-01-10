@@ -5,7 +5,7 @@
     android:id="@+id/fullscreen_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/colorLogo"
+    android:background="@color/transparent"
     tools:context=".Project.Activities.FullscreenActivity">
 
     <ProgressBar
@@ -32,6 +32,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
     <FrameLayout
         android:id="@+id/frame_layout"
         android:layout_width="match_parent"

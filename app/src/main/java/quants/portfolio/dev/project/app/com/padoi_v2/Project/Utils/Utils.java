@@ -41,8 +41,7 @@ public class Utils {
     public static String getTag(Class aClass) {
         return aClass.getCanonicalName();
     }
-    public static void setLoading(Context context, final View view , boolean isLoading) {
-
+    public static View setLoading(Context context, final View view , boolean isLoading) {
         final long duration = context.getResources().getInteger(R.integer.loading_duration);
         if (isLoading) {//start the animation
             view.setVisibility(View.VISIBLE);
@@ -73,5 +72,6 @@ public class Utils {
             view.animate().cancel();
             view.setVisibility(View.GONE);
         }
+        return view;
     }
 }

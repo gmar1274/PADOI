@@ -77,6 +77,7 @@
         <item name="android:windowBackground">@null</item>
         <item name="metaButtonBarStyle">?android:attr/buttonBarStyle</item>
         <item name="metaButtonBarButtonStyle">?android:attr/buttonBarButtonStyle</item>
+        <item name="android:windowIsTranslucent">true</item>
     </style>
 
     <style name="FullscreenActionBarStyle" parent="android:Widget.Holo.ActionBar">
@@ -101,6 +102,24 @@
         <!-- specify enter and exit transitions -->
         <item name="android:windowEnterTransition">@transition/slide_up</item>
         <item name="android:windowExitTransition">@transition/slide_up</item>
+
+    </style>
+
+    <style name="AppThemeSocial" parent="AppThemeNoActionBar">
+
+
+        <!-- enable views to be shared and animated between activites-->
+        <item name="android:windowContentTransitions">true</item>
+
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowNoTitle">true</item>
+
+        <!-- enable window content transitions -->
+        <item name="android:windowActivityTransitions">true</item>
+        <!-- specify enter and exit transitions -->
+        <item name="android:windowEnterTransition">@transition/slide_left</item>
+        <item name="android:windowExitTransition">@transition/slide_right</item>
 
     </style>
 

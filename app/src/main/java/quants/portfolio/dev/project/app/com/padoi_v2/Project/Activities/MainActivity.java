@@ -84,6 +84,15 @@ public class MainActivity extends AppCompatActivity implements IPadoiAPI {
                 startActivity(intent);
             }
         });
+
+        ImageView imageViewSocial = findViewById(R.id.imageViewSocial);
+        imageViewSocial.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(MainActivity.this, SocialActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
     private void setLoading(boolean isLoading) {

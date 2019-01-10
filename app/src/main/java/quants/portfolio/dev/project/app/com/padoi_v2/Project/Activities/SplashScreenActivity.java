@@ -1,5 +1,6 @@
 package quants.portfolio.dev.project.app.com.padoi_v2.Project.Activities;
 
+import android.animation.Animator;
 import android.app.ActivityOptions;
 import android.content.Intent;
 import android.os.Build;
@@ -32,13 +33,33 @@ public class SplashScreenActivity extends AppCompatActivity implements Permissio
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash_screen);
         initViews();
-        enableLocation();
     }
     private void initViews() {
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);//turns the status bar text to be read if background is light.
         mTextView = findViewById(R.id.textView);
         mCardView = findViewById(R.id.cardView);
-        Utils.setLoading(this, mCardView,true);
+        mCardView = (CardView) Utils.setLoading(this,mCardView,true);//starts the animation
+        mCardView.animate().setListener(new Animator.AnimatorListener() {//wait min time to enable location permission manager
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                    enableLocation();
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        }).start();
     }
 
     @Override
@@ -71,9 +92,10 @@ public class SplashScreenActivity extends AppCompatActivity implements Permissio
             startActivity(intent);
         }
     }
-    private void enableLocation(){
+    private void enableLocation()  {
 
         if(PermissionsManager.areLocationPermissionsGranted(this)) {
+
             Intent intent = new Intent(SplashScreenActivity.this, MainActivity.class);
             //intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             //if logged in then go to main activity
@@ -84,7 +106,6 @@ public class SplashScreenActivity extends AppCompatActivity implements Permissio
             }
             mShouldFinish = true;
         }else {
-
             permissionsManager = new PermissionsManager(this);
             permissionsManager.requestLocationPermissions(this);
 
@@ -103,7 +124,7 @@ public class SplashScreenActivity extends AppCompatActivity implements Permissio
     @Override
     public void onPermissionResult(boolean granted) {
         if (granted) {
-            enableLocation();
+                enableLocation();
         } else {
             Toast.makeText(this, R.string.user_location_permission_not_granted, Toast.LENGTH_LONG).show();
             finish();
